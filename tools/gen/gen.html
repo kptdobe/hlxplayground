@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <title>Gen</title>
+    <link rel="stylesheet" type="text/css" href="../libs/pico/pico.classless.css">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Prompt tester</h1>
+      <form>
+        <label for="url">Prompt</label>
+        <textarea id="prompt" name="prompt" rows="15" required>
+# We will infer block_type and block_description from a list of blocks in an Excel file. 
+# Customer defines/selects:
+#	- Segment (dropdown from Excel file. Assumptions: at least 1 default segment)
+# 		default segment: 
+#				 - Visitor.
+#				 - A visitor is a user who is looking to buy a product / fill a form. 
+#	- num variations (default: 3)
+
+# For translation it's a different prompt. 
+# 1. generate the prompt in english 
+# 2. run a 2nd prompt to translate the generated english content to {language}
+
+
+On our web page, users are presented with a hero. A hero is represented by paragraph. Upon interacting with the hero by clicking a button
+
+Our intent is to engage web site visitors to click and buy our service.
+A visitor is a human surfing our website and potentially interested in buying our service.
+
+Your task is to compose 5 distinct pieces of copy for a hero targeted to the visitors that is concise, engaging and persuasive to the user by selecting from page content provided in double-brackets ([[]]) below. The text you compose will be used to test the hypotheses below in a live experiment. Keep in mind that users will typically only read the title.
+
+To accomplish your task, the text you compose must strictly comply with the following requirements numbered in triple backticks (```) below and address the following hypotheses:
+
+- Users will be more likely to engage with the hero if it is personalized to their interests.
+
+- Users will be more likely to engage with the hero if the call-to-action is clear, concise and relevant to the page content provided in double-brackets ([[]]) below.
+
+- Users will be more likely to engage with the hero if the text is concise, persuasive and engaging.
+
+Requirements: ```
+  (infer) 1. The text must consist of two parts, a title and a body.
+  (infer) 2. The text must be brief, such that:
+  (infer) 2a. The title text must not exceed 6 words or 40 characters, including spaces.
+  (infer) 2b. The body text must not exceed 13 words or 100 characters, including spaces.
+  (static) 4. The tone of the text needs to be: optimistic, smart, engaging, human, emotional, and creative.
+  (static) 5. Never abbreviate or shorten the name of the product in the text.
+  (static) 6. Compose the text without using the same adjective more than once.
+  (static) 7. Do not use exclamation marks or points at the end of sentences in the text.
+  (static) 8. Do not use exclamation marks or point in the text.
+  (static) 9. Format the output as a valid, single-line string, JSON array of objects with attributes "Title" and "Body".
+```
+
+Additional context: [[
+{button_link_content} / {current_page_content}
+]]
+        </textarea>  
+        <small>Edit your prompt.</small>
+          <button type="button" id="generate">Generate</button>
+      </form>
+      <div class="container" id="results"></div>
+    </main>
+    <script src="./gen.ui.js"></script>
+  </body>
+</html>
