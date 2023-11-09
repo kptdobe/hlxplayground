@@ -289,15 +289,6 @@
         },
       });
 
-      if (transfered >= 100000 && !done1KB) {
-        // 100kb rules
-        entries.push({
-          Type: '100kb rule',
-          'Row Type': 'marker',
-        });
-        done1KB = true;
-      }
-
       if (entry.name === LCP.url) {
         entries.push({
           Type: 'LCP resource',
@@ -311,6 +302,15 @@
           'Row Type': 'marker',
         });
         doneLCP = true;
+      }
+
+      if (transfered >= 100000 && !done1KB) {
+        // 100kb rules
+        entries.push({
+          Type: '100kb rule',
+          'Row Type': 'marker',
+        });
+        done1KB = true;
       }
     });
     entries.push({
