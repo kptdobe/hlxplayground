@@ -251,6 +251,8 @@
         penalties.push(`Render blocking: ${entry.renderBlockingStatus}`);
       }
 
+      transfered += entry.transferSize;
+
       entries.push({
         // 'Start time (ms)': formatTimeMS(entry.startTime),
         'Start time': `${formatTime(entry.startTime / 1000)}s`,
@@ -286,8 +288,6 @@
           'Time to fetch (without redirects)': formatTimeMS(entry.responseEnd - entry.fetchStart),
         },
       });
-
-      transfered += entry.transferSize;
 
       if (transfered >= 100000 && !done1KB) {
         // 100kb rules
