@@ -12,11 +12,20 @@ Drag&drop the following link in your Chrome browser bookmarks:
 
 <a href="javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';s.src='https://main--hlxplayground--kptdobe.hlx.live/tools/report/report.js';if(document.getElementById('hlx-report'))%7Bdocument.getElementById('hlx-report').replaceWith(s);%7D else %7Bdocument.head.append(s);%7D%7D)();">Performance report</a>
 
+## Usage
+
+- Load a page
+- Click on the bookmarklet link
+
+## Analysis
+
+This is still WIP and early stage but ideally it should be easy to visualize resources which are loaded to early (before the LCP but not critical to the initial loading sequence), resources which are too big (first 100KiB are crucial for page to perform well) or resources which take too long to load (3rd party domain, slow server, non h2/h3 protocol).
+
+## Limitations
+
+The page you want to run the report on can have a CSP blocking script execution if script is not in the predefined list. A CSP killer Chrome extension should do the trick (a first test seems to indicate CSP killers have an impact on Chrome Performance monitoring API - TODO: investigate)
+
 ## Development
 
 - Clone the current repo and start a light web server from the project root
 - Update the bookmarklet above to point to localhost
-
-## Limitations
-
-The page you want to run the report 
