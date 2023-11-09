@@ -91,6 +91,10 @@
         text-overflow: ellipsis;
       }
 
+      .hlx-col.hlx-wrap pre span {
+        white-space: normal;
+      }
+
       .hlx-small {
         max-width: 100px;
       }
@@ -100,7 +104,7 @@
       }
 
       .hlx-xlarge {
-        max-width: 800px;
+        max-width: 100%;
       }
 
       .hlx-col-header:first-child,
@@ -180,7 +184,7 @@
             <div class="hlx-col hlx-small">${row['Accumulated transfer size']}</div>
             <div class="hlx-col hlx-small">${row.Duration}</div>
             <div class="hlx-col hlx-large">${row.Penalties}</div>
-            <div class="hlx-col hlx-xlarge"><a href="#" data-entry="${encodeURIComponent(JSON.stringify(row.entry, null, 2))}" data-extra="${encodeURIComponent(JSON.stringify(row.extra, null, 2))}">View</a></div>
+            <div class="hlx-col hlx-xlarge hlx-wrap"><a href="#" data-entry="${encodeURIComponent(JSON.stringify(row.entry, null, 2))}" data-extra="${encodeURIComponent(JSON.stringify(row.extra, null, 2))}">View</a></div>
           </row>
         `;
         index += 1;
