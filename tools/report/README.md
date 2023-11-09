@@ -8,9 +8,11 @@ The tool should can used as bookmarklet or loaded directly in the page to be tes
 
 ## Bookmarklet
 
-Drag&drop the following link in your Chrome browser bookmarks:
+In Chrome bookmark, create a new link and add the following "url":
 
-<a href="javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';s.src='https://main--hlxplayground--kptdobe.hlx.live/tools/report/report.js';if(document.getElementById('hlx-report'))%7Bdocument.getElementById('hlx-report').replaceWith(s);%7D else %7Bdocument.head.append(s);%7D%7D)();">Performance report</a>
+```
+javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';s.src='https://main--hlxplayground--kptdobe.hlx.live/tools/report/report.js';if(document.getElementById('hlx-report'))%7Bdocument.getElementById('hlx-report').replaceWith(s);%7D else %7Bdocument.head.append(s);%7D%7D)();
+```
 
 ## Usage
 
