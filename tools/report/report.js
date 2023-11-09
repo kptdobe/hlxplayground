@@ -56,6 +56,16 @@
 
         font-family: sans-serif;
         font-size: 15px;
+        color: black;
+      }
+
+      .hlx-container a:any-link {
+        color: #035fe6;
+      }
+
+      .hlx-container a:hover {
+        text-decoration: underline;
+        color: #136ff6;
       }
 
       .hlx-row {
@@ -164,7 +174,7 @@
           <div class="hlx-row ${row['LCP Resource'] ? 'hlx-lcp-resource' : ''} ${row['Before 100kb'] ? 'hlx-before-100kb' : ''}">
             <div class="hlx-col hlx-small">${index}</div>
             <div class="hlx-col hlx-small">${row['Start time']}</div>
-            <div class="hlx-col hlx-large"><a href="${row.url}">${row.Host === host ? row.Path : row.url}</a></div>
+            <div class="hlx-col hlx-large"><a href="${row.url}" target="_blank">${row.Host === host ? row.Path : row.url}</a></div>
             <div class="hlx-col hlx-small">${row.Type}</div>
             <div class="hlx-col hlx-small">${row['Transfer size']}</div>
             <div class="hlx-col hlx-small">${row['Accumulated transfer size']}</div>
