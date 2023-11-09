@@ -5,6 +5,29 @@
   const formatTimeMS = (x) => `${formatTime(x)}ms`;
   const formatSizeKiB = (x) => `${formatSize(x)}KiB`;
 
+  const jsonSyntaxHighlight = (json) => {
+    let output = json;
+    if (typeof json !== 'string') {
+      output = JSON.stringify(json, undefined, 2);
+    }
+    output = output.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return output.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, (match) => {
+      let cls = 'number';
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = 'key';
+        } else {
+          cls = 'string';
+        }
+      } else if (/true|false/.test(match)) {
+        cls = 'boolean';
+      } else if (/null/.test(match)) {
+        cls = 'null';
+      }
+      return `<span class="${cls}">${match}</span>`;
+    });
+  };
+
   const cleanup = () => {
     console.clear();
 
@@ -66,6 +89,10 @@
         max-width: 400px;
       }
 
+      .hlx-xlarge {
+        max-width: 800px;
+      }
+
       .hlx-col-header:first-child,
       .hlx-col:first-child {
         border-left: 1px solid black;
@@ -110,6 +137,7 @@
         <div class="hlx-col-header hlx-small">Accumulated transfer size</div>
         <div class="hlx-col-header hlx-small">Duration</div>
         <div class="hlx-col-header hlx-large">Penalties</div>
+        <div class="hlx-col-header hlx-xlarge">Performance resource entry</div>
       </div>
     `;
     grid.appendChild(head);
@@ -128,6 +156,7 @@
             <div class="hlx-col hlx-small">${row['Accumulated transfer size'] ? row['Accumulated transfer size'] : ''}</div>
             <div class="hlx-col hlx-small"></div>
             <div class="hlx-col hlx-large"></div>
+            <div class="hlx-col hlx-xlarge"></div>
           </row>
         `;
       } else {
@@ -141,6 +170,7 @@
             <div class="hlx-col hlx-small">${row['Accumulated transfer size']}</div>
             <div class="hlx-col hlx-small">${row.Duration}</div>
             <div class="hlx-col hlx-large">${row.Penalties}</div>
+            <div class="hlx-col hlx-xlarge"><a href="#" data-entry="${encodeURIComponent(JSON.stringify(row.entry, null, 2))}" data-extra="${encodeURIComponent(JSON.stringify(row.extra, null, 2))}">View</a></div>
           </row>
         `;
         index += 1;
@@ -150,6 +180,24 @@
     grid.appendChild(body);
     container.appendChild(grid);
     document.body.prepend(container);
+
+    const jsonLinks = document.querySelectorAll('[data-entry]');
+    jsonLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (e.target.innerHTML === 'Hide') {
+          e.target.innerHTML = 'View';
+          e.target.parentElement.querySelector('pre').remove();
+        } else {
+          const entry = JSON.parse(decodeURIComponent(e.target.getAttribute('data-entry')));
+          const extra = JSON.parse(decodeURIComponent(e.target.getAttribute('data-extra')));
+          const pre = document.createElement('pre');
+          pre.innerHTML = jsonSyntaxHighlight({ ...entry, ...extra });
+          e.target.parentElement.appendChild(pre);
+          e.target.innerHTML = 'Hide';
+        }
+      });
+    });
   };
 
   const report = async () => {
@@ -171,7 +219,7 @@
     let done1KB = false;
     let doneLCP = false;
     resources.forEach((entry) => {
-      console.log(entry);
+      // console.log(entry);
       const u = new URL(entry.name);
 
       const penalties = [];
@@ -186,7 +234,7 @@
       }
 
       if (entry.nextHopProtocol !== 'h2' && entry.nextHopProtocol !== 'h3') {
-        penalties.push('HTTP/1.1');
+        penalties.push(`Next Hop Protocol value not h2 nor h3: '${entry.nextHopProtocol}'`);
       }
 
       if (entry.renderBlockingStatus !== 'non-blocking') {
@@ -219,6 +267,14 @@
         'Before 100kb': !done1KB,
         'LCP Resource': entry.name === LCP.url,
         'Row Type': 'resource',
+        entry,
+        extra: {
+          'Request time': formatTimeMS(entry.responseStart - entry.requestStart),
+          'DNS lookup time': formatTimeMS(entry.domainLookupEnd - entry.domainLookupStart),
+          'Redirection time': formatTimeMS(entry.redirectEnd - entry.redirectStart),
+          'TLS negotiation time': formatTimeMS(entry.requestStart - entry.secureConnectionStart),
+          'Time to fetch (without redirects)': formatTimeMS(entry.responseEnd - entry.fetchStart),
+        },
       });
 
       transfered += entry.transferSize;
@@ -253,7 +309,7 @@
       'Row Type': 'marker',
     });
 
-    console.table(entries);
+    // console.table(entries);
     return entries;
   };
 
