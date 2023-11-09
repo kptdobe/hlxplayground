@@ -1,0 +1,22 @@
+# Performance report
+
+Prototype to see if it is possible to use Chrome `PerformanceResourceTiming` in order to analyze and display useful information to fix performances issues.
+
+The tool uses the page currently loaded in the browser, loads all the `PerformanceResourceTiming` entries and displays a report which can be used to analyze what and when resources are loaded on the page. It shows timing and size information for each resource and shows the identified LCP resource and when the LCP event fires in the loading sequence.
+
+The tool should can used as bookmarklet or loaded directly in the page to be tested (delayed 5s to leave time for all resources to be loaded).
+
+## Bookmarklet
+
+Drag&drop the following link in your Chrome browser bookmarks:
+
+<a href="javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';s.src='https://main--hlxplayground--kptdobe.hlx.live/tools/report/report.js';if(document.getElementById('hlx-report'))%7Bdocument.getElementById('hlx-report').replaceWith(s);%7D else %7Bdocument.head.append(s);%7D%7D)();">Performance report</a>
+
+## Development
+
+- Clone the current repo and start a light web server from the project root
+- Update the bookmarklet above to point to localhost
+
+## Limitations
+
+The page you want to run the report 
