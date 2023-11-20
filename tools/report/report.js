@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
 (() => {
+  /* display */
   const formatTime = (x) => (x !== 0 ? (Math.round(x * 100) / 100) : 0);
   const formatSize = (x) => (x !== 0 ? (Math.round((x / 1000) * 100) / 100) : 0);
   const formatTimeMS = (x) => `${formatTime(x)}ms`;
@@ -28,35 +28,22 @@
     });
   };
 
-  const cleanup = () => {
-    console.clear();
-
-    const g = document.getElementById('hlx-report-grid');
-    if (g) g.remove();
-
-    const s = document.getElementById('hlx-report-style');
-    if (s) s.remove();
-  };
-
-  const setup = () => {
+  const setupStyles = () => {
     const style = document.createElement('style');
     style.id = 'hlx-report-style';
     style.innerHTML = `
       .hlx-container {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         z-index: 99999;
         overflow-y: scroll;
         
-        background-color: lightgrey;
+        background-color: rgba(26, 26, 26, 1);
         margin: 20px;
 
         font-family: sans-serif;
-        font-size: 15px;
-        color: black;
+        font-size: 14px;
+        color: white;
       }
 
       .hlx-container a:any-link {
@@ -72,6 +59,11 @@
         display: flex;
         flex-wrap: wrap;
         border-top: 1px solid black;
+      }
+
+      .hlx-container > div > .hlx-row:first-of-type {
+        font-weight: bold;
+        font-size: 15px;
       }
 
       .hlx-row:last-child {
@@ -96,7 +88,7 @@
       }
 
       .hlx-small {
-        max-width: 100px;
+        max-width: 120px;
       }
 
       .hlx-large {
@@ -112,28 +104,58 @@
         border-left: 1px solid black;
       }
 
-      .hlx-row.hlx-lcp-resource {
-        background-color: lightgreen;
-      }
-
-      .hlx-row.hlx-lcp-event {
-        background-color: lightcoral;
-      }
-
       .hlx-before-100kb {
-        background-color: grey;
+        background-color: rgba(255, 255, 255, 0.1);
       }
 
-      .hlx-marker {
-        font-weight: bold;
+      .hlx-tbt .hlx-col-index,
+      .hlx-tbt .hlx-col-time,
+      .hlx-tbt .hlx-col-name,
+      .hlx-tbt .hlx-col-type,
+      .hlx-tbt .hlx-col-duration {
+        color: red;
+      }
+
+      .hlx-cls .hlx-col-index,
+      .hlx-cls .hlx-col-time,
+      .hlx-cls .hlx-col-name,
+      .hlx-cls .hlx-col-type,
+      .hlx-cls .hlx-col-duration {
+        color: #c50;
+      }
+
+      .hlx-lcp .hlx-col-index,
+      .hlx-lcp .hlx-col-time,
+      .hlx-lcp .hlx-col-name,
+      .hlx-lcp .hlx-col-type,
+      .hlx-lcp .hlx-col-size,
+      .hlx-lcp .hlx-col-totalSize,
+      .hlx-lcp .hlx-col-duration {
+        color: green;
+      }
+
+      .hlx-paint .hlx-col-index,
+      .hlx-paint .hlx-col-time,
+      .hlx-paint .hlx-col-name,
+      .hlx-paint .hlx-col-type,
+      .hlx-paint .hlx-col-duration {
+        color: #b73;
+      }
+
+      .hlx-marker .hlx-col-index,
+      .hlx-marker .hlx-col-time,
+      .hlx-marker .hlx-col-name,
+      .hlx-marker .hlx-col-type,
+      .hlx-marker .hlx-col-duration {
+        color: #586AE8;
       }
     `;
     document.head.appendChild(style);
   };
 
   const display = (report) => {
-    const u = new URL(window.location.href);
-    const host = u.hostname;
+    const current = new URL(window.location.href);
+    const host = current.hostname;
 
     const container = document.createElement('div');
     container.classList.add('hlx-container');
@@ -144,58 +166,73 @@
     head.classList.add('hlx-row');
     head.innerHTML = `
         <div class="hlx-col-header hlx-small">Index</div>
-        <div class="hlx-col-header hlx-small">Start time (s)</div>
+        <div class="hlx-col-header hlx-small">Start time</div>
+        <div class="hlx-col-header hlx-small">Name</div>
         <div class="hlx-col-header hlx-large">URL</div>
         <div class="hlx-col-header hlx-small">Type</div>
-        <div class="hlx-col-header hlx-small">Transfer size</div>
-        <div class="hlx-col-header hlx-small">Accumulated transfer size</div>
+        <div class="hlx-col-header hlx-small">Size</div>
+        <div class="hlx-col-header hlx-small">Accumuled size</div>
         <div class="hlx-col-header hlx-small">Duration</div>
-        <div class="hlx-col-header hlx-large">Penalties</div>
-        <div class="hlx-col-header hlx-xlarge">Performance resource entry</div>
+        <div class="hlx-col-header hlx-xlarge">Details</div>
       </div>
     `;
     grid.appendChild(head);
 
     const body = document.createElement('div');
-    let index = 0;
-    report.forEach((row) => {
-      if (row['Row Type'] === 'marker') {
-        body.innerHTML += `
-          <div class="hlx-row hlx-marker ${row.Type === 'LCP event' ? 'hlx-lcp-event' : ''}">
-            <div class="hlx-col hlx-small"></div>
-            <div class="hlx-col hlx-small"></div>
-            <div class="hlx-col hlx-large"></div>
-            <div class="hlx-col hlx-small">${row.Type}</div>
-            <div class="hlx-col hlx-small"></div>
-            <div class="hlx-col hlx-small">${row['Accumulated transfer size'] ? row['Accumulated transfer size'] : ''}</div>
-            <div class="hlx-col hlx-small"></div>
-            <div class="hlx-col hlx-large"></div>
-            <div class="hlx-col hlx-xlarge"></div>
-          </row>
-        `;
-      } else {
-        body.innerHTML += `
-          <div class="hlx-row ${row['LCP Resource'] ? 'hlx-lcp-resource' : ''} ${row['Before 100kb'] ? 'hlx-before-100kb' : ''}">
-            <div class="hlx-col hlx-small">${index}</div>
-            <div class="hlx-col hlx-small">${row['Start time']}</div>
-            <div class="hlx-col hlx-large"><a href="${row.url}" target="_blank">${row.Host === host ? row.Path : row.url}</a></div>
-            <div class="hlx-col hlx-small">${row.Type}</div>
-            <div class="hlx-col hlx-small">${row['Transfer size']}</div>
-            <div class="hlx-col hlx-small">${row['Accumulated transfer size']}</div>
-            <div class="hlx-col hlx-small">${row.Duration}</div>
-            <div class="hlx-col hlx-large">${row.Penalties}</div>
-            <div class="hlx-col hlx-xlarge hlx-wrap"><a href="#" data-entry="${encodeURIComponent(JSON.stringify(row.entry, null, 2))}" data-extra="${encodeURIComponent(JSON.stringify(row.extra, null, 2))}">View</a></div>
-          </row>
-        `;
-        index += 1;
-      }
-    });
-
     grid.appendChild(body);
     container.appendChild(grid);
     document.body.prepend(container);
+    let index = 0;
+    let before100kb = true;
+    report.forEach((row) => {
+      let urlDislay = row.url;
+      if (row.url) {
+        const u = new URL(row.url);
+        if (u.hostname === host) {
+          urlDislay = u.pathname;
+        }
+      }
+      const classes = [];
+      if (row.type === 'LCP') {
+        classes.push('hlx-lcp');
+      } else if (row.type === 'CLS') {
+        classes.push('hlx-cls');
+      } else if (row.type === 'TBT') {
+        classes.push('hlx-tbt');
+      } else if (row.type === 'paint') {
+        classes.push('hlx-paint');
+      } else if (row.type === 'mark') {
+        classes.push('hlx-marker');
+      } else {
+        classes.push('hlx-resource');
+      }
 
-    const jsonLinks = document.querySelectorAll('[data-entry]');
+      if (before100kb && row.totalSize !== undefined && row.totalSize > 100000) {
+        before100kb = false;
+      }
+
+      if (before100kb) {
+        classes.push('hlx-before-100kb');
+      }
+
+      const rowElement = document.createElement('div');
+      rowElement.className = `hlx-row ${classes.join(' ')}`;
+      rowElement.innerHTML += `
+        <div class="hlx-col hlx-small hlx-col-index">${index}</div>
+        <div class="hlx-col hlx-small hlx-col-time">${formatTimeMS(row.time)}</div>
+        <div class="hlx-col hlx-small hlx-col-name">${row.name || ''}</div>
+        <div class="hlx-col hlx-large hlx-col-url">${row.url ? `<a href="${row.url}" target="_blank">${urlDislay}</a>` : ''}</div>
+        <div class="hlx-col hlx-small hlx-col-type">${row.type}</div>
+        <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
+        <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
+        <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
+        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">View</a></div>
+      `;
+      body.appendChild(rowElement);
+      index += 1;
+    });
+
+    const jsonLinks = document.querySelectorAll('[data-details]');
     jsonLinks.forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -203,10 +240,9 @@
           e.target.innerHTML = 'View';
           e.target.parentElement.querySelector('pre').remove();
         } else {
-          const entry = JSON.parse(decodeURIComponent(e.target.getAttribute('data-entry')));
-          const extra = JSON.parse(decodeURIComponent(e.target.getAttribute('data-extra')));
+          const details = JSON.parse(decodeURIComponent(e.target.getAttribute('data-details')));
           const pre = document.createElement('pre');
-          pre.innerHTML = jsonSyntaxHighlight({ ...entry, ...extra });
+          pre.innerHTML = jsonSyntaxHighlight({ ...details });
           e.target.parentElement.appendChild(pre);
           e.target.innerHTML = 'Hide';
         }
@@ -214,124 +250,196 @@
     });
   };
 
-  const report = async () => {
-    const getLCP = async () => new Promise((resolve) => {
-      const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1]; // Use the latest LCP candidate
-        console.log('Found LCP', lastEntry);
-        resolve(lastEntry);
+  /* report construction */
+  const getEntries = async (type) => new Promise((resolve) => {
+    const timeout = window.setTimeout(() => {
+      resolve([]);
+    }, 2000);
+
+    const pols = new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      if (timeout) window.clearTimeout(timeout);
+      pols.disconnect();
+      resolve(entries);
+    });
+    pols.observe({ type, buffered: true });
+  });
+
+  const reportResources = async (data) => {
+    const entries = await getEntries('resource');
+    entries.forEach((entry) => {
+      const {
+        name,
+        initiatorType,
+        startTime,
+        duration,
+        transferSize,
+      } = entry;
+
+      data.push({
+        time: startTime,
+        url: name,
+        type: initiatorType,
+        duration,
+        size: transferSize,
+        details: { entry },
       });
-      observer.observe({ type: 'largest-contentful-paint', buffered: true });
     });
+  };
 
-    const LCP = await getLCP();
+  const LCPToData = (entry, index, length) => {
+    const {
+      url, startTime, size, // duration,
+    } = entry;
+    const name = length === 1 ? 'LCP' : `LCP Candidate ${index + 1}`;
+    console.log('LCP element', entry.element, entry);
+    return {
+      time: startTime,
+      name,
+      url,
+      type: 'LCP',
+      // duration,
+      size,
+      details: {
+        id: entry.id,
+        tag: entry.element.tagName,
+        renderTime: entry.renderTime,
+      },
+    };
+  };
 
-    const resources = performance.getEntriesByType('resource');
-    const entries = [];
-    let transfered = 0;
-    let done1KB = false;
-    let doneLCP = false;
-    resources.forEach((entry) => {
-      // console.log(entry);
-      const u = new URL(entry.name);
+  const CLSToData = (entry, index, length) => {
+    const {
+      startTime, value,
+    } = entry;
+    const name = length === 1 ? 'CLS' : `CLS ${index + 1} / ${length}`;
+    const sources = entry.sources.map((source) => {
+      const to = source.currentRect;
+      const from = source.previousRect;
+      console.log('CLS on element', source.node, entry);
+      return {
+        tagName: source.node?.tagName || 'unknown',
+        className: source.node?.className || 'unknown',
+        from: `from: ${from.top} ${from.right} ${from.bottom} ${from.left}`,
+        to: `to:   ${to.top} ${to.right} ${to.bottom} ${to.left}`,
+      };
+    });
+    return {
+      time: startTime,
+      name,
+      type: 'CLS',
+      details: {
+        value,
+        sources,
+      },
+    };
+  };
 
-      const penalties = [];
-      const tcpHandshake = entry.connectEnd - entry.connectStart;
-      if (tcpHandshake > 0) {
-        penalties.push(`TCP handshake (${formatTimeMS(tcpHandshake)})`);
-      }
+  const TBTToData = (entry, index, length) => {
+    const {
+      startTime, duration,
+    } = entry;
+    const name = length === 1 ? 'TBT' : `TBT ${index + 1} / ${length}`;
+    return {
+      time: startTime,
+      name,
+      type: 'TBT',
+      duration,
+      details: { entry },
+    };
+  };
 
-      const dnsLookup = entry.domainLookupEnd - entry.domainLookupStart;
-      if (dnsLookup > 0) {
-        penalties.push(`DNS lookup (${formatTimeMS(dnsLookup)})`);
-      }
+  const paintToData = (entry) => {
+    const {
+      name, startTime,
+    } = entry;
+    return {
+      time: startTime,
+      name,
+      type: 'paint',
+      details: { entry },
+    };
+  };
 
-      if (entry.nextHopProtocol !== 'h2' && entry.nextHopProtocol !== 'h3') {
-        penalties.push(`Next Hop Protocol value not h2 nor h3: '${entry.nextHopProtocol}'`);
-      }
+  const markToData = (entry) => {
+    const {
+      name, startTime,
+    } = entry;
+    console.log('mark', entry);
+    return {
+      time: startTime,
+      name,
+      type: 'mark',
+      details: {
+        ...entry.detail,
+      },
+    };
+  };
 
-      if (entry.renderBlockingStatus !== 'non-blocking') {
-        penalties.push(`Render blocking: ${entry.renderBlockingStatus}`);
-      }
-
-      transfered += entry.transferSize;
-
-      entries.push({
-        // 'Start time (ms)': formatTimeMS(entry.startTime),
-        'Start time': `${formatTime(entry.startTime / 1000)}s`,
-        url: entry.name,
-        Host: u.hostname,
-        Path: u.pathname,
-        Type: entry.initiatorType,
-        'Transfer size': formatSizeKiB(entry.transferSize),
-        'Accumulated transfer size': formatSizeKiB(transfered),
-        // 'Encoded body size': formatSizeKiB(entry.encodedBodySize),
-        // 'Decoded body size': formatSizeKiB(entry.decodedBodySize),
-        'Local caches hit': (entry.transferSize === 0),
-        Duration: formatTimeMS(entry.duration),
-        // 'Request time': formatTimeMS(entry.responseStart - entry.requestStart),
-        // 'TCP handshake time': formatTimeMS(tcpHandshake),
-        // 'DNS lookup time': formatTimeMS(entry.domainLookupEnd - entry.domainLookupStart),
-        // 'Redirection time': formatTimeMS(entry.redirectEnd - entry.redirectStart),
-        // 'TLS negotiation time': formatTimeMS(entry.requestStart - entry.secureConnectionStart),
-        // 'Time to fetch (without redirects)': formatTimeMS(entry.responseEnd - entry.fetchStart),
-        // 'Next Hop protocol': (entry.nextHopProtocol),
-        // 'Render Blocking Status': entry.renderBlockingStatus,
-        Penalties: penalties.join(', '),
-        'Before LCP': !doneLCP,
-        'Before 100kb': !done1KB,
-        'LCP Resource': entry.name === LCP.url,
-        'Row Type': 'resource',
-        entry,
-        extra: {
-          'Request time': formatTimeMS(entry.responseStart - entry.requestStart),
-          'DNS lookup time': formatTimeMS(entry.domainLookupEnd - entry.domainLookupStart),
-          'Redirection time': formatTimeMS(entry.redirectEnd - entry.redirectStart),
-          'TLS negotiation time': formatTimeMS(entry.requestStart - entry.secureConnectionStart),
-          'Time to fetch (without redirects)': formatTimeMS(entry.responseEnd - entry.fetchStart),
-        },
+  const reportMarker = async (data, type, entryToData) => {
+    const entries = await getEntries(type);
+    if (entries.length === 1) {
+      data.push(entryToData(entries[0], 1, 1));
+    } else {
+      entries.forEach((entry, index) => {
+        data.push(entryToData(entry, index, entries.length));
       });
+    }
+  };
 
-      if (entry.name === LCP.url) {
-        entries.push({
-          Type: 'LCP resource',
-          'Row Type': 'marker',
-        });
-      }
+  const getPerformanceReport = async () => {
+    const data = [];
 
-      if (entry.startTime >= LCP.startTime && !doneLCP) {
-        entries.push({
-          Type: 'LCP event',
-          'Row Type': 'marker',
-        });
-        doneLCP = true;
-      }
+    await Promise.all([
+      reportResources(data),
+      reportMarker(data, 'largest-contentful-paint', LCPToData),
+      reportMarker(data, 'layout-shift', CLSToData),
+      reportMarker(data, 'longtask', TBTToData),
+      reportMarker(data, 'paint', paintToData),
+      reportMarker(data, 'mark', markToData),
+    ]);
 
-      if (transfered >= 100000 && !done1KB) {
-        // 100kb rules
-        entries.push({
-          Type: '100kb rule',
-          'Row Type': 'marker',
-        });
-        done1KB = true;
+    data.sort((a, b) => a.time - b.time);
+    let totalSize = 0;
+
+    return data.map((entry) => {
+      const {
+        time, name, url, type, duration, size, details,
+      } = entry;
+      const ret = {};
+
+      if (time) ret.time = Math.round(time); else ret.time = 0;
+      if (name) ret.name = name;
+      if (url) ret.url = url;
+      if (type) ret.type = type;
+      if (duration !== undefined) ret.duration = Math.round(duration);
+
+      if (size !== undefined) {
+        totalSize += size;
+        ret.size = size;
+        ret.totalSize = totalSize;
       }
+      ret.details = details;// JSON.stringify(details);
+      return ret;
     });
-    entries.push({
-      Type: 'Total transfered',
-      'Accumulated transfer size': formatSizeKiB(transfered),
-      'Row Type': 'marker',
-    });
+  };
 
-    // console.table(entries);
-    return entries;
+  const cleanup = () => {
+    console.clear();
+
+    const s = document.getElementById('hlx-report-style');
+    if (s) s.remove();
+
+    const g = document.getElementById('hlx-report-grid');
+    if (g) g.remove();
   };
 
   const main = async () => {
     cleanup();
-    setup();
-    const r = await report();
-    display(r);
+    setupStyles();
+    const data = await getPerformanceReport();
+    console.table(data);
+    display(data);
   };
 
   main();
