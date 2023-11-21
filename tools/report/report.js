@@ -60,6 +60,27 @@
         color: white;
       }
 
+      .hlx-container .hlx-header {
+        padding: 10px;
+        background-color: var(--hlx-color-dialog);
+      }
+
+      .hlx-container .hlx-header h1 {
+        font-size: 20px;
+        line-height: 1;
+        margin-bottom: 10px;
+        font-weight: bold;
+        }
+    
+      .hlx-container .hlx-header .hlx-report-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: white;
+        background-color: transparent;
+        padding: 4px;
+      }
+
       .hlx-container a:any-link {
         color: var(--hlx-color-link);
       }
@@ -202,6 +223,14 @@
     container.classList.add('hlx-container');
     container.id = 'hlx-report-dialog';
 
+    const header = document.createElement('div');
+    header.classList.add('hlx-header');
+    header.innerHTML = `
+      <h1>Performance report</h1>
+      <button class="hlx-report-close">X</button>
+    `;
+    container.appendChild(header);
+
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
 
@@ -272,8 +301,7 @@
       index += 1;
     });
 
-    const jsonLinks = document.querySelectorAll('[data-details]');
-    jsonLinks.forEach((link) => {
+    container.querySelectorAll('[data-details]').forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.innerHTML === 'Hide') {
@@ -287,6 +315,10 @@
           e.target.innerHTML = 'Hide';
         }
       });
+    });
+
+    container.querySelector('.hlx-report-close').addEventListener('click', () => {
+      container.remove();
     });
   };
 
@@ -468,7 +500,7 @@
         ret.size = size;
         ret.totalSize = totalSize;
       }
-      ret.details = details;// JSON.stringify(details);
+      ret.details = details;
       return ret;
     });
   };
@@ -487,7 +519,7 @@
     cleanup();
     setupStyles();
     const data = await getPerformanceReport();
-    console.table(data);
+    // console.table(data);
     display(data);
   };
 
