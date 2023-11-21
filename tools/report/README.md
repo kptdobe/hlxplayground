@@ -30,7 +30,7 @@ if (window.performance) performance.mark('block-loaded', { detail: { preview: bl
 The first parameter is the name of the mark. All marks are classified with the `ELD` type
 
 The second parameter is optional but very useful to share some "details":
-- the `preview` property will be displayed in the "Preview" column of the report
+- the `preview` property will be displayed in the "Info" column of the report
 - the full object will be displayed when clicking on the `Details` link
 
 ## Analysis

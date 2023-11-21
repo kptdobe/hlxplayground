@@ -229,6 +229,10 @@
         color: white;
       }
 
+      .hlx-penalty {
+        cursor: default;
+      }
+
     `;
     document.head.appendChild(style);
   };
@@ -275,7 +279,7 @@
       <div class="hlx-col-header hlx-small">Size</div>
       <div class="hlx-col-header hlx-small">Total size</div>
       <div class="hlx-col-header hlx-small">Duration</div>
-      <div class="hlx-col-header hlx-small">Preview</div>
+      <div class="hlx-col-header hlx-small">Info</div>
       <div class="hlx-col-header hlx-xlarge">Details</div>
     `;
     grid.appendChild(head);
@@ -392,7 +396,24 @@
         startTime,
         duration,
         transferSize,
+        connectStart,
+        connectEnd,
+        domainLookupStart,
+        domainLookupEnd,
+        renderBlockingStatus,
       } = entry;
+
+      let preview = null;
+
+      const tcpHandshake = connectEnd - connectStart;
+      const dnsLookup = domainLookupEnd - domainLookupStart;
+      if (tcpHandshake > 0 || dnsLookup > 0 || renderBlockingStatus !== 'non-blocking') {
+        const title = [];
+        if (tcpHandshake > 0) title.push(`TCP handshake: ${formatTimeMS(tcpHandshake)}`);
+        if (dnsLookup > 0) title.push(`DNS lookup: ${formatTimeMS(dnsLookup)}`);
+        if (renderBlockingStatus !== 'non-blocking') title.push(`Render blocking: ${renderBlockingStatus}`);
+        preview = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
+      }
 
       data.push({
         time: startTime,
@@ -400,7 +421,10 @@
         type: initiatorType,
         duration,
         size: transferSize,
-        details: { entry },
+        details: {
+          preview: preview || null,
+          entry,
+        },
       });
     });
   };
