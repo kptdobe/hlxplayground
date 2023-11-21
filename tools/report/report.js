@@ -59,6 +59,7 @@
         font-size: 14px;
         color: white;
         border-radius: 6px;
+        line-height: 1.8;
       }
 
       .hlx-container .hlx-header {
@@ -433,7 +434,7 @@
     const {
       url, startTime, size, // duration,
     } = entry;
-    const name = length === 1 ? 'LCP' : `LCP Candidate ${index + 1}`;
+    const name = length === 1 ? 'LCP' : `LCP Candidate ${index + 1} / ${length}`;
     console.log('LCP element', entry.element, entry);
     const tag = entry.element?.tagName;
     return {
