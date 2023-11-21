@@ -33,7 +33,7 @@
     style.id = 'hlx-report-style';
     style.innerHTML = `
       :root {
-        --hlx-color-grid: rgba(26, 26, 26, 1);
+        --hlx-color-dialog: rgba(26, 26, 26, 1);
         --hlx-color-100kb: rgba(255, 255, 255, 0.1);
 
         --hlx-color-link: #035fe6;
@@ -52,7 +52,7 @@
         z-index: 99999;
         overflow-y: scroll;
         
-        background-color: var(--hlx-color-grid);
+        background-color: var(--hlx-color-dialog);
         margin: 20px;
 
         font-family: sans-serif;
@@ -67,6 +67,10 @@
       .hlx-container a:hover {
         text-decoration: underline;
         color: var(--hlx-color-hover);
+      }
+
+      .hlx-grid {
+        margin: 10px;
       }
 
       .hlx-row {
@@ -87,8 +91,7 @@
       .hlx-col-header,
       .hlx-col {
         flex: 1;
-        border-right: 1px solid black;
-        padding: 5px;
+        padding: 2px 5px;
       }
 
       .hlx-col {
@@ -106,21 +109,12 @@
         white-space: normal;
       }
 
-      .hlx-small {
-        max-width: 120px;
-      }
-
       .hlx-large {
-        max-width: 400px;
+        min-width: 20%;
       }
 
       .hlx-xlarge {
-        max-width: 100%;
-      }
-
-      .hlx-col-header:first-child,
-      .hlx-col:first-child {
-        border-left: 1px solid black;
+        min-width: 25%;
       }
 
       .hlx-before-100kb {
@@ -206,27 +200,26 @@
 
     const container = document.createElement('div');
     container.classList.add('hlx-container');
-    container.id = 'hlx-report-grid';
+    container.id = 'hlx-report-dialog';
+
     const grid = document.createElement('div');
+    grid.classList.add('hlx-grid');
 
     const head = document.createElement('div');
     head.classList.add('hlx-row');
     head.innerHTML = `
-        <div class="hlx-col-header hlx-small">Index</div>
-        <div class="hlx-col-header hlx-small">Start time</div>
-        <div class="hlx-col-header hlx-small">Name</div>
-        <div class="hlx-col-header hlx-large">URL</div>
-        <div class="hlx-col-header hlx-small">Type</div>
-        <div class="hlx-col-header hlx-small">Size</div>
-        <div class="hlx-col-header hlx-small">Accumuled size</div>
-        <div class="hlx-col-header hlx-small">Duration</div>
-        <div class="hlx-col-header hlx-xlarge">Details</div>
-      </div>
+      <div class="hlx-col-header hlx-small">Index</div>
+      <div class="hlx-col-header hlx-small">Start time</div>
+      <div class="hlx-col-header hlx-small">Name</div>
+      <div class="hlx-col-header hlx-large">URL</div>
+      <div class="hlx-col-header hlx-small">Type</div>
+      <div class="hlx-col-header hlx-small">Size</div>
+      <div class="hlx-col-header hlx-small">Total size</div>
+      <div class="hlx-col-header hlx-small">Duration</div>
+      <div class="hlx-col-header hlx-xlarge">Details</div>
     `;
     grid.appendChild(head);
 
-    const body = document.createElement('div');
-    grid.appendChild(body);
     container.appendChild(grid);
     document.body.prepend(container);
     let index = 0;
@@ -275,7 +268,7 @@
         <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
         <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details">${row.details ? `${row.details.preview ? `${row.details.preview} / ` : ''}<a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a>` : ''}</div>
       `;
-      body.appendChild(rowElement);
+      grid.appendChild(rowElement);
       index += 1;
     });
 
@@ -486,7 +479,7 @@
     const s = document.getElementById('hlx-report-style');
     if (s) s.remove();
 
-    const g = document.getElementById('hlx-report-grid');
+    const g = document.getElementById('hlx-report-dialog');
     if (g) g.remove();
   };
 
