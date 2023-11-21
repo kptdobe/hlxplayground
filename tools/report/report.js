@@ -258,7 +258,7 @@
         classes.push('hlx-tbt');
       } else if (row.type === 'paint') {
         classes.push('hlx-paint');
-      } else if (row.type === 'mark') {
+      } else if (row.type === 'ELD') {
         classes.push('hlx-marker');
       } else {
         classes.push('hlx-resource');
@@ -422,11 +422,11 @@
     const {
       name, startTime,
     } = entry;
-    console.log('mark', entry);
+    console.log('ELD', entry);
     return {
       time: startTime,
       name,
-      type: 'mark',
+      type: 'ELD',
       details: {
         ...entry.detail,
       },
