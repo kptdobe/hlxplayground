@@ -97,6 +97,11 @@
         text-overflow: ellipsis;
       }
 
+      .hlx-col.hlx-wrap pre {
+        scroll: auto;
+        margin: 0;
+      }
+
       .hlx-col.hlx-wrap pre span {
         white-space: normal;
       }
@@ -283,7 +288,7 @@
         <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
-        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">View</a></div>
+        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details">${row.details ? `<a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">View</a>` : ''}</div>
       `;
       body.appendChild(rowElement);
       index += 1;
@@ -359,8 +364,9 @@
       size,
       details: {
         id: entry.id,
-        tag: entry.element.tagName,
+        tag: entry.element?.tagName,
         renderTime: entry.renderTime,
+        outerHTML: entry.element?.outerHTML,
       },
     };
   };
@@ -377,6 +383,7 @@
       return {
         tagName: source.node?.tagName || 'unknown',
         className: source.node?.className || 'unknown',
+        outerHTML: source.node?.outerHTML,
         from: `from: ${from.top} ${from.right} ${from.bottom} ${from.left}`,
         to: `to:   ${to.top} ${to.right} ${to.bottom} ${to.left}`,
       };
@@ -423,14 +430,18 @@
       name, startTime,
     } = entry;
     console.log('ELD', entry);
-    return {
+    const ret = {
       time: startTime,
       name,
       type: 'ELD',
-      details: {
-        ...entry.detail,
-      },
     };
+
+    if (entry.detail) {
+      ret.details = {
+        ...entry.detail,
+      };
+    }
+    return ret;
   };
 
   const reportMarker = async (data, type, entryToData) => {
