@@ -127,10 +127,7 @@
         background-color: var(--hlx-color-100kb);
       }
 
-      .hlx-tbt .hlx-col-index,
-      .hlx-tbt .hlx-col-time,
-      .hlx-tbt .hlx-col-name,
-      .hlx-tbt .hlx-col-duration {
+      .hlx-tbt {
         color: var(--hlx-color-tbt);
       }
 
@@ -143,11 +140,7 @@
         font-weight: bold;
       }
 
-      .hlx-cls .hlx-col-index,
-      .hlx-cls .hlx-col-time,
-      .hlx-cls .hlx-col-name,
-      .hlx-cls .hlx-col-type,
-      .hlx-cls .hlx-col-duration {
+      .hlx-cls {
         color: var(--hlx-color-cls);
       }
 
@@ -160,12 +153,7 @@
         font-weight: bold;
       }
 
-      .hlx-lcp .hlx-col-index,
-      .hlx-lcp .hlx-col-time,
-      .hlx-lcp .hlx-col-name,
-      .hlx-lcp .hlx-col-size,
-      .hlx-lcp .hlx-col-totalSize,
-      .hlx-lcp .hlx-col-duration {
+      .hlx-lcp {
         color: var(--hlx-color-lcp);
       }
 
@@ -178,11 +166,7 @@
         font-weight: bold;
       }
 
-      .hlx-paint .hlx-col-index,
-      .hlx-paint .hlx-col-time,
-      .hlx-paint .hlx-col-name,
-      .hlx-paint .hlx-col-type,
-      .hlx-paint .hlx-col-duration {
+      .hlx-paint {
         color: var(--hlx-color-paint);
       }
 
@@ -195,10 +179,7 @@
         font-weight: bold;
       }
 
-      .hlx-marker .hlx-col-index,
-      .hlx-marker .hlx-col-time,
-      .hlx-marker .hlx-col-name,
-      .hlx-marker .hlx-col-duration {
+      .hlx-marker {
         color: var(--hlx-color-marker);
       }
       
@@ -209,6 +190,10 @@
         text-align: center;
         border-radius: 5px;
         font-weight: bold;
+      }
+
+      .hlx-col-details pre {
+        color: white;
       }
 
     `;
@@ -288,7 +273,7 @@
         <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
-        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details">${row.details ? `<a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">View</a>` : ''}</div>
+        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details">${row.details ? `${row.details.preview ? `${row.details.preview} / ` : ''}<a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a>` : ''}</div>
       `;
       body.appendChild(rowElement);
       index += 1;
@@ -299,7 +284,7 @@
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.innerHTML === 'Hide') {
-          e.target.innerHTML = 'View';
+          e.target.innerHTML = 'Details';
           e.target.parentElement.querySelector('pre').remove();
         } else {
           const details = JSON.parse(decodeURIComponent(e.target.getAttribute('data-details')));
@@ -355,6 +340,7 @@
     } = entry;
     const name = length === 1 ? 'LCP' : `LCP Candidate ${index + 1}`;
     console.log('LCP element', entry.element, entry);
+    const tag = entry.element?.tagName;
     return {
       time: startTime,
       name,
@@ -363,8 +349,9 @@
       // duration,
       size,
       details: {
+        preview: tag ? `&lt;${tag.toLowerCase()}&gt;` : null,
         id: entry.id,
-        tag: entry.element?.tagName,
+        tag,
         renderTime: entry.renderTime,
         outerHTML: entry.element?.outerHTML,
       },
@@ -393,6 +380,7 @@
       name,
       type: 'CLS',
       details: {
+        preview: value ? value.toFixed(3) : null,
         value,
         sources,
       },
