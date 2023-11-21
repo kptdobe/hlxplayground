@@ -19,6 +19,20 @@ javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';
 - Load a page
 - Click on the bookmarklet link
 
+## Project extension: performance.mark
+
+In a project, you use `performance.mark()` to add custom entries in the report "timeline" and visualise when they happen in the loading sequence. Here is an example:
+
+```
+if (window.performance) performance.mark('block-loaded', { detail: { preview: blockName, className: block.className } });
+```
+
+The first parameter is the name of the mark. All marks are classified with the `ELD` type
+
+The second parameter is optional but very useful to share some "details":
+- the `preview` property will be displayed in the last column of the report
+- the full object will be displayed when clicking on the `Details` link
+
 ## Analysis
 
 This is still WIP and early stage but ideally it should be easy to visualize resources which are loaded to early (before the LCP but not critical to the initial loading sequence), resources which are too big (first 100KiB are crucial for page to perform well) or resources which take too long to load (3rd party domain, slow server, non h2/h3 protocol).
