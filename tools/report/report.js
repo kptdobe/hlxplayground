@@ -32,13 +32,27 @@
     const style = document.createElement('style');
     style.id = 'hlx-report-style';
     style.innerHTML = `
+      :root {
+        --hlx-color-grid: rgba(26, 26, 26, 1);
+        --hlx-color-100kb: rgba(255, 255, 255, 0.1);
+
+        --hlx-color-link: #035fe6;
+        --hlx-color-hover: #136ff6;
+
+        --hlx-color-tbt: #eb7655;
+        --hlx-color-lcp: #279766;
+        --hlx-color-paint: #b73;
+        --hlx-color-cls: rgba(231, 196, 104, 0.7);
+        --hlx-color-marker: #4fc0d2;
+      }
+
       .hlx-container {
         position: fixed;
         inset: 0;
         z-index: 99999;
         overflow-y: scroll;
         
-        background-color: rgba(26, 26, 26, 1);
+        background-color: var(--hlx-color-grid);
         margin: 20px;
 
         font-family: sans-serif;
@@ -47,12 +61,12 @@
       }
 
       .hlx-container a:any-link {
-        color: #035fe6;
+        color: var(--hlx-color-link);
       }
 
       .hlx-container a:hover {
         text-decoration: underline;
-        color: #136ff6;
+        color: var(--hlx-color-hover);
       }
 
       .hlx-row {
@@ -105,15 +119,23 @@
       }
 
       .hlx-before-100kb {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: var(--hlx-color-100kb);
       }
 
       .hlx-tbt .hlx-col-index,
       .hlx-tbt .hlx-col-time,
       .hlx-tbt .hlx-col-name,
-      .hlx-tbt .hlx-col-type,
       .hlx-tbt .hlx-col-duration {
-        color: red;
+        color: var(--hlx-color-tbt);
+      }
+
+      .hlx-tbt .hlx-col-type .hlx-badge {
+        background-color: var(--hlx-color-tbt);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
       }
 
       .hlx-cls .hlx-col-index,
@@ -121,17 +143,34 @@
       .hlx-cls .hlx-col-name,
       .hlx-cls .hlx-col-type,
       .hlx-cls .hlx-col-duration {
-        color: #c50;
+        color: var(--hlx-color-cls);
+      }
+
+      .hlx-cls .hlx-col-type .hlx-badge {
+        background-color: var(--hlx-color-cls);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
       }
 
       .hlx-lcp .hlx-col-index,
       .hlx-lcp .hlx-col-time,
       .hlx-lcp .hlx-col-name,
-      .hlx-lcp .hlx-col-type,
       .hlx-lcp .hlx-col-size,
       .hlx-lcp .hlx-col-totalSize,
       .hlx-lcp .hlx-col-duration {
-        color: green;
+        color: var(--hlx-color-lcp);
+      }
+
+      .hlx-lcp .hlx-col-type .hlx-badge {
+        background-color: var(--hlx-color-lcp);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
       }
 
       .hlx-paint .hlx-col-index,
@@ -139,16 +178,34 @@
       .hlx-paint .hlx-col-name,
       .hlx-paint .hlx-col-type,
       .hlx-paint .hlx-col-duration {
-        color: #b73;
+        color: var(--hlx-color-paint);
+      }
+
+      .hlx-paint .hlx-col-type .hlx-badge {
+        background-color: var(--hlx-color-paint);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
       }
 
       .hlx-marker .hlx-col-index,
       .hlx-marker .hlx-col-time,
       .hlx-marker .hlx-col-name,
-      .hlx-marker .hlx-col-type,
       .hlx-marker .hlx-col-duration {
-        color: #586AE8;
+        color: var(--hlx-color-marker);
       }
+      
+      .hlx-marker .hlx-col-type .hlx-badge {
+        background-color: var(--hlx-color-marker);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
     `;
     document.head.appendChild(style);
   };
@@ -222,7 +279,7 @@
         <div class="hlx-col hlx-small hlx-col-time">${formatTimeMS(row.time)}</div>
         <div class="hlx-col hlx-small hlx-col-name">${row.name || ''}</div>
         <div class="hlx-col hlx-large hlx-col-url">${row.url ? `<a href="${row.url}" target="_blank">${urlDislay}</a>` : ''}</div>
-        <div class="hlx-col hlx-small hlx-col-type">${row.type}</div>
+        <div class="hlx-col hlx-small hlx-col-type"><span class="hlx-badge">${row.type}</span></div>
         <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
