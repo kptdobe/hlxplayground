@@ -58,6 +58,7 @@
         font-family: sans-serif;
         font-size: 14px;
         color: white;
+        border-radius: 6px;
       }
 
       .hlx-container .hlx-header {
