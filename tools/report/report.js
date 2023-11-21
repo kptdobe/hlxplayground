@@ -275,6 +275,7 @@
       <div class="hlx-col-header hlx-small">Size</div>
       <div class="hlx-col-header hlx-small">Total size</div>
       <div class="hlx-col-header hlx-small">Duration</div>
+      <div class="hlx-col-header hlx-small">Preview</div>
       <div class="hlx-col-header hlx-xlarge">Details</div>
     `;
     grid.appendChild(head);
@@ -325,7 +326,8 @@
         <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
         <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
-        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details">${row.details ? `${row.details.preview ? `${row.details.preview} / ` : ''}<a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a>` : ''}</div>
+        <div class="hlx-col hlx-small hlx-col-preview">${row.details?.preview ? `${row.details.preview}` : ''}</div>
+        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a></div>
       `;
       grid.appendChild(rowElement);
       index += 1;
