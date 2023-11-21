@@ -90,6 +90,23 @@
         color: var(--hlx-color-hover);
       }
 
+      .hlx-filters {
+        display: flex;
+        gap: 14px;
+        margin-left: 6px;
+      }
+
+      .hlx-filters input {
+        border: 0;
+        padding: 0;
+        margin: 0 8px 0 2px;
+        accent-color: white;
+      }
+
+      .hlx-row.hlx-hidden {
+        display: none;
+      }
+
       .hlx-grid {
         margin: 10px;
       }
@@ -146,7 +163,7 @@
         color: var(--hlx-color-tbt);
       }
 
-      .hlx-tbt .hlx-col-type .hlx-badge {
+      .hlx-tbt .hlx-badge {
         background-color: var(--hlx-color-tbt);
         color: white;
         padding: 4px 8px;
@@ -159,7 +176,7 @@
         color: var(--hlx-color-cls);
       }
 
-      .hlx-cls .hlx-col-type .hlx-badge {
+      .hlx-cls .hlx-badge {
         background-color: var(--hlx-color-cls);
         color: white;
         padding: 4px 8px;
@@ -172,7 +189,7 @@
         color: var(--hlx-color-lcp);
       }
 
-      .hlx-lcp .hlx-col-type .hlx-badge {
+      .hlx-lcp .hlx-badge {
         background-color: var(--hlx-color-lcp);
         color: white;
         padding: 4px 8px;
@@ -185,7 +202,7 @@
         color: var(--hlx-color-paint);
       }
 
-      .hlx-paint .hlx-col-type .hlx-badge {
+      .hlx-paint .hlx-badge {
         background-color: var(--hlx-color-paint);
         color: white;
         padding: 4px 8px;
@@ -198,7 +215,7 @@
         color: var(--hlx-color-marker);
       }
       
-      .hlx-marker .hlx-col-type .hlx-badge {
+      .hlx-marker .hlx-badge {
         background-color: var(--hlx-color-marker);
         color: white;
         padding: 4px 8px;
@@ -230,6 +247,18 @@
       <button class="hlx-report-close">X</button>
     `;
     container.appendChild(header);
+
+    const filters = document.createElement('div');
+    filters.classList.add('hlx-filters');
+    filters.innerHTML = `
+      <div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>
+      <div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>
+      <div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>
+      <div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>
+      <div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>
+      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>ELD</span></div>
+    `;
+    container.appendChild(filters);
 
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
@@ -319,6 +348,20 @@
 
     container.querySelector('.hlx-report-close').addEventListener('click', () => {
       container.remove();
+    });
+
+    container.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const type = checkbox.parentElement.parentElement.classList[0];
+        const rows = grid.querySelectorAll(`.${type}`);
+        rows.forEach((row) => {
+          if (checkbox.checked) {
+            row.classList.remove('hlx-hidden');
+          } else {
+            row.classList.add('hlx-hidden');
+          }
+        });
+      });
     });
   };
 
