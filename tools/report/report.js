@@ -260,34 +260,7 @@
     document.head.appendChild(style);
   };
 
-  const display = (report) => {
-    const current = new URL(window.location.href);
-    const host = current.hostname;
-
-    const container = document.createElement('div');
-    container.classList.add('hlx-container');
-    container.id = 'hlx-report-dialog';
-
-    const header = document.createElement('div');
-    header.classList.add('hlx-header');
-    header.innerHTML = `
-      <h1>Performance report</h1>
-      <button class="hlx-report-close">X</button>
-    `;
-    container.appendChild(header);
-
-    const filters = document.createElement('div');
-    filters.classList.add('hlx-filters');
-    filters.innerHTML = `
-      <div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>
-      <div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>
-      <div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>
-      <div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>
-      <div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>
-      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>
-    `;
-    container.appendChild(filters);
-
+  const generateGrid = (data) => {
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
 
@@ -306,11 +279,12 @@
     `;
     grid.appendChild(head);
 
-    container.appendChild(grid);
-    document.body.prepend(container);
+    const current = new URL(window.location.href);
+    const host = current.hostname;
+
     let index = 0;
     let before100kb = true;
-    report.forEach((row) => {
+    data.forEach((row) => {
       let urlDislay = row.url;
       if (row.url) {
         const u = new URL(row.url);
@@ -358,7 +332,7 @@
       index += 1;
     });
 
-    container.querySelectorAll('[data-details]').forEach((link) => {
+    grid.querySelectorAll('[data-details]').forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.innerHTML === 'Hide') {
@@ -374,9 +348,42 @@
       });
     });
 
+    return grid;
+  };
+
+  const display = (data) => {
+    const container = document.createElement('div');
+    container.classList.add('hlx-container');
+    container.id = 'hlx-report-dialog';
+
+    const header = document.createElement('div');
+    header.classList.add('hlx-header');
+    header.innerHTML = `
+      <h1>Performance report</h1>
+      <button class="hlx-report-close">X</button>
+    `;
+    container.appendChild(header);
+
+    const filters = document.createElement('div');
+    filters.classList.add('hlx-filters');
+    filters.innerHTML = `
+      <div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>
+      <div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>
+      <div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>
+      <div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>
+      <div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>
+      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>
+    `;
+    container.appendChild(filters);
+
     container.querySelector('.hlx-report-close').addEventListener('click', () => {
       container.remove();
     });
+
+    document.body.prepend(container);
+
+    const grid = generateGrid(data);
+    container.appendChild(grid);
 
     container.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
