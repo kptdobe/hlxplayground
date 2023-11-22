@@ -444,7 +444,6 @@
         preview = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
       }
 
-      console.log('resource', startTime, responseEnd);
       data.push({
         start: startTime,
         end: responseEnd,
@@ -602,7 +601,7 @@
         ret.totalSize = totalSize;
       }
 
-      ret.before100kb = Math.round(totalSize) <= 100000;
+      ret.before100kb = Math.round(totalSize) < 101000;
 
       ret.details = details;
       return ret;
