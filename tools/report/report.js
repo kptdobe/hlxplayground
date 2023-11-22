@@ -91,6 +91,10 @@
         color: var(--hlx-color-hover);
       }
 
+      .hlx-views {
+        padding: 10px 2px;
+      }
+
       .hlx-filters {
         display: flex;
         gap: 14px;
@@ -260,13 +264,29 @@
     document.head.appendChild(style);
   };
 
-  const generateGrid = (data, cols = ['start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details']) => {
+  const applyFilter = (type, show, el) => {
+    const rows = el.querySelectorAll(`.${type}`);
+    rows.forEach((row) => {
+      if (show) {
+        row.classList.remove('hlx-hidden');
+      } else {
+        row.classList.add('hlx-hidden');
+      }
+    });
+  };
+
+  const generateGrid = (
+    data,
+    cols = ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details'],
+    defaultFilters = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
+  ) => {
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
 
     const head = document.createElement('div');
     head.classList.add('hlx-row');
-    head.innerHTML = '<div class="hlx-col-header hlx-xs"></div>';
+    head.innerHTML = '';
+    if (cols.includes('index')) head.innerHTML += '<div class="hlx-col-header hlx-xs hlx-right">#</div>';
     if (cols.includes('start')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Start</div>';
     if (cols.includes('end')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">End</div>';
     if (cols.includes('url')) head.innerHTML += '<div class="hlx-col-header hlx-xl">URL</div>';
@@ -285,7 +305,7 @@
     let index = 0;
     data.forEach((row) => {
       const {
-        url, type, size, totalSize, duration, details, start, end, name, before100kb,
+        url, type, size, totalSize, duration, details, start, end, name, before100kb, entryType,
       } = row;
       let urlDislay = url;
       if (url) {
@@ -313,9 +333,14 @@
         classes.push('hlx-before-100kb');
       }
 
+      if (!defaultFilters.includes(entryType)) {
+        classes.push('hlx-hidden');
+      }
+
       const rowElement = document.createElement('div');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
-      rowElement.innerHTML += `<div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>`;
+      rowElement.innerHTML = '';
+      if (cols.includes('index')) rowElement.innerHTML += `<div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>`;
       if (cols.includes('start')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</div>`;
       if (cols.includes('end')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</div>`;
       if (cols.includes('url')) rowElement.innerHTML += `<div class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</div>`;
@@ -349,44 +374,71 @@
     return grid;
   };
 
-  const generateFilters = (list = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
+  const generateFilters = (list = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'], defaults = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
     const filters = document.createElement('div');
     filters.classList.add('hlx-filters');
     filters.innerHTML = '';
     if (list.includes('resource')) {
-      filters.innerHTML += '<div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>';
+      filters.innerHTML += `<div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('resource') ? 'checked' : ''}>Resource</span></div>`;
     }
     if (list.includes('lcp')) {
-      filters.innerHTML += '<div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>';
+      filters.innerHTML += `<div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('lcp') ? 'checked' : ''}>LCP</span></div>`;
     }
     if (list.includes('tbt')) {
-      filters.innerHTML += '<div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>';
+      filters.innerHTML += `<div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('tbt') ? 'checked' : ''}>TBT</span></div>`;
     }
     if (list.includes('cls')) {
-      filters.innerHTML += '<div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>';
+      filters.innerHTML += `<div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('cls') ? 'checked' : ''}>CLS</span></div>`;
     }
     if (list.includes('paint')) {
-      filters.innerHTML += '<div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>';
+      filters.innerHTML += `<div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('paint') ? 'checked' : ''}>paint</span></div>`;
     }
     if (list.includes('mark')) {
-      filters.innerHTML += '<div class="hlx-mark"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>';
+      filters.innerHTML += `<div class="hlx-mark"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('mark') ? 'checked' : ''}>mark</span></div>`;
     }
 
     filters.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
         const type = checkbox.parentElement.parentElement.classList[0];
-        const rows = document.querySelectorAll(`.hlx-grid .${type}`);
-        rows.forEach((row) => {
-          if (checkbox.checked) {
-            row.classList.remove('hlx-hidden');
-          } else {
-            row.classList.add('hlx-hidden');
-          }
-        });
+        applyFilter(type, checkbox.checked, document.querySelector('.hlx-grid'));
       });
     });
 
     return filters;
+  };
+
+  const VIEWS = {
+    LCP: {
+      filters: ['resource', 'lcp', 'mark', 'paint'],
+      defaultFilters: ['resource', 'lcp', 'paint'],
+      cols: ['index', 'start', 'url', 'type', 'size', 'totalSize', 'preview'],
+      data: (d) => {
+        const ret = [];
+        for (let i = 0; i < d.length; i += 1) {
+          const entry = d[i];
+          ret.push(entry);
+          if (entry.name === 'first-contentful-paint') {
+            break;
+          }
+        }
+        return ret;
+      },
+    },
+    CLS: {
+      filters: ['resource', 'cls', 'mark', 'paint'],
+      defaultFilters: ['resource', 'cls'],
+      cols: ['end', 'url', 'type', 'preview'],
+      data: (d) => {
+        d.sort((a, b) => a.end - b.end);
+        return d;
+      },
+    },
+    all: {
+      filters: undefined,
+      cols: undefined,
+      defaultFilters: undefined,
+      data: (d) => d,
+    },
   };
 
   const display = (data) => {
@@ -402,17 +454,42 @@
     `;
     container.appendChild(header);
 
-    const filters = generateFilters();
-    container.appendChild(filters);
-
     container.querySelector('.hlx-report-close').addEventListener('click', () => {
       container.remove();
     });
 
     document.body.prepend(container);
 
-    const grid = generateGrid(data);
+    const views = document.createElement('div');
+    views.classList.add('hlx-views');
+    views.innerHTML = `
+      <label><input type="radio" name="view" value="LCP">LCP Focus</label>
+      <label><input type="radio" name="view" value="CLS" >CLS Focus</label>
+      <label><input type="radio" name="view" value="all" checked>View All</label>
+    `;
+
+    container.appendChild(views);
+
+    const filters = generateFilters(VIEWS.all.filters, VIEWS.all.defaultFilters);
+    container.appendChild(filters);
+
+    const grid = generateGrid(VIEWS.all.data(data), VIEWS.all.cols, VIEWS.all.defaultFilters);
     container.appendChild(grid);
+
+    views.querySelectorAll('input').forEach((input) => {
+      input.addEventListener('change', (ev) => {
+        const view = VIEWS[ev.target.value];
+
+        container.querySelector('.hlx-filters').remove();
+        container.querySelector('.hlx-grid').remove();
+
+        const f = generateFilters(view.filters, view.defaultFilters);
+        container.appendChild(f);
+
+        const g = generateGrid(view.data(data), view.cols, view.defaultFilters);
+        container.appendChild(g);
+      });
+    });
   };
 
   /* report construction */
@@ -464,6 +541,7 @@
         end: responseEnd,
         url: name,
         type: initiatorType,
+        entryType: 'resource',
         duration,
         size: transferSize,
         details: {
@@ -476,7 +554,7 @@
 
   const LCPToData = (entry, index, length) => {
     const {
-      url, startTime, size, // duration,
+      url, startTime,
     } = entry;
     const name = length === 1 ? 'LCP' : `LCP Candidate ${index + 1} / ${length}`;
     console.log('LCP element', entry.element, entry);
@@ -487,7 +565,6 @@
       url,
       type: 'LCP',
       // duration,
-      size,
       details: {
         preview: tag ? `&lt;${tag.toLowerCase()}&gt;` : null,
         id: entry.id,
@@ -599,7 +676,7 @@
     let totalSize = 0;
     return data.map((entry) => {
       const {
-        start, end, name, url, type, duration, size, details,
+        start, end, name, url, type, duration, size, details, entryType,
       } = entry;
       const ret = {};
 
@@ -608,6 +685,7 @@
       if (name) ret.name = name;
       if (url) ret.url = url;
       if (type) ret.type = type;
+      if (entryType) ret.entryType = entryType; else ret.entryType = type.toLowerCase();
       if (duration !== undefined) ret.duration = Math.round(duration);
 
       if (size !== undefined) {
