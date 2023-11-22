@@ -430,7 +430,6 @@
       defaultFilters: ['resource', 'cls'],
       cols: ['end', 'url', 'type', 'preview'],
       data: (data) => {
-        console.log('CLS data', data);
         const ret = data.map((d) => {
           delete d.before100kb;
           return d;
