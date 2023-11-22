@@ -149,11 +149,19 @@
         white-space: normal;
       }
 
-      .hlx-large {
+      .hlx-right {
+        text-align: right;
+      }
+
+      .hlx-xs {
+        max-width: 30px;
+      }
+
+      .hlx-l {
         min-width: 20%;
       }
 
-      .hlx-xlarge {
+      .hlx-xl {
         min-width: 25%;
       }
 
@@ -262,7 +270,7 @@
       <div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>
       <div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>
       <div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>
-      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>ELD</span></div>
+      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>Mark</span></div>
     `;
     container.appendChild(filters);
 
@@ -272,16 +280,15 @@
     const head = document.createElement('div');
     head.classList.add('hlx-row');
     head.innerHTML = `
-      <div class="hlx-col-header hlx-small">Index</div>
-      <div class="hlx-col-header hlx-small">Start time</div>
-      <div class="hlx-col-header hlx-small">Name</div>
-      <div class="hlx-col-header hlx-large">URL</div>
-      <div class="hlx-col-header hlx-small">Type</div>
-      <div class="hlx-col-header hlx-small">Size</div>
-      <div class="hlx-col-header hlx-small">Total size</div>
-      <div class="hlx-col-header hlx-small">Duration</div>
-      <div class="hlx-col-header hlx-small">Info</div>
-      <div class="hlx-col-header hlx-xlarge">Details</div>
+      <div class="hlx-col-header hlx-xs"></div>
+      <div class="hlx-col-header hlx-right hlx-s">Start time</div>
+      <div class="hlx-col-header hlx-l">URL</div>
+      <div class="hlx-col-header hlx-s">Type</div>
+      <div class="hlx-col-header hlx-s">Size</div>
+      <div class="hlx-col-header hlx-s">Total size</div>
+      <div class="hlx-col-header hlx-s">Duration</div>
+      <div class="hlx-col-header hlx-s">Info</div>
+      <div class="hlx-col-header hlx-xl">Details</div>
     `;
     grid.appendChild(head);
 
@@ -306,7 +313,7 @@
         classes.push('hlx-tbt');
       } else if (row.type === 'paint') {
         classes.push('hlx-paint');
-      } else if (row.type === 'ELD') {
+      } else if (row.type === 'mark') {
         classes.push('hlx-marker');
       } else {
         classes.push('hlx-resource');
@@ -323,16 +330,15 @@
       const rowElement = document.createElement('div');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
       rowElement.innerHTML += `
-        <div class="hlx-col hlx-small hlx-col-index">${index}</div>
-        <div class="hlx-col hlx-small hlx-col-time">${formatTimeMS(row.time)}</div>
-        <div class="hlx-col hlx-small hlx-col-name">${row.name || ''}</div>
-        <div class="hlx-col hlx-large hlx-col-url">${row.url ? `<a href="${row.url}" target="_blank">${urlDislay}</a>` : ''}</div>
-        <div class="hlx-col hlx-small hlx-col-type"><span class="hlx-badge">${row.type}</span></div>
-        <div class="hlx-col hlx-small hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
-        <div class="hlx-col hlx-small hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
-        <div class="hlx-col hlx-small hlx-col-duration">${row.duration !== undefined ? formatTimeMS(row.duration) : ''}</div>
-        <div class="hlx-col hlx-small hlx-col-preview">${row.details?.preview ? `${row.details.preview}` : ''}</div>
-        <div class="hlx-col hlx-xlarge hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a></div>
+        <div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-time">${formatTime(row.time)}</div>
+        <div class="hlx-col hlx-l hlx-col-url">${row.url ? `<a href="${row.url}" target="_blank">${urlDislay}</a>` : ''}</div>
+        <div class="hlx-col hlx-s hlx-col-type"><span title="${row.name || ''}" class="hlx-badge">${row.type}</span></div>
+        <div class="hlx-col hlx-s hlx-col-size">${row.size !== undefined ? formatSizeKiB(row.size) : ''}</div>
+        <div class="hlx-col hlx-s hlx-col-totalSize">${row.totalSize !== undefined ? formatSizeKiB(row.totalSize) : ''}</div>
+        <div class="hlx-col hlx-s hlx-col-duration">${row.duration !== undefined ? formatTime(row.duration) : ''}</div>
+        <div class="hlx-col hlx-s hlx-col-preview">${row.details?.preview ? `${row.details.preview}` : ''}</div>
+        <div class="hlx-col hlx-xl hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a></div>
       `;
       grid.appendChild(rowElement);
       index += 1;
@@ -402,6 +408,7 @@
         domainLookupStart,
         domainLookupEnd,
         renderBlockingStatus,
+        responseEnd,
       } = entry;
 
       let preview = null;
@@ -418,6 +425,8 @@
 
       data.push({
         time: startTime,
+        start: startTime,
+        end: responseEnd,
         url: name,
         type: initiatorType,
         duration,
@@ -513,11 +522,11 @@
     const {
       name, startTime,
     } = entry;
-    console.log('ELD', entry);
+    console.log('Mark', entry);
     const ret = {
       time: startTime,
       name,
-      type: 'ELD',
+      type: 'mark',
     };
 
     if (entry.detail) {
