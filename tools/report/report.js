@@ -268,7 +268,8 @@
     head.classList.add('hlx-row');
     head.innerHTML = `
       <div class="hlx-col-header hlx-xs"></div>
-      <div class="hlx-col-header hlx-s hlx-right">Start time</div>
+      <div class="hlx-col-header hlx-s hlx-right">Start</div>
+      <div class="hlx-col-header hlx-s hlx-right">End</div>
       <div class="hlx-col-header hlx-xl">URL</div>
       <div class="hlx-col-header hlx-m hlx-center">Type</div>
       <div class="hlx-col-header hlx-s hlx-right">Size (KiB)</div>
@@ -283,25 +284,27 @@
     const host = current.hostname;
 
     let index = 0;
-    let before100kb = true;
     data.forEach((row) => {
-      let urlDislay = row.url;
-      if (row.url) {
-        const u = new URL(row.url);
+      const {
+        url, type, size, totalSize, duration, details, start, end, name, before100kb,
+      } = row;
+      let urlDislay = url;
+      if (url) {
+        const u = new URL(url);
         if (u.hostname === host) {
           urlDislay = u.pathname;
         }
       }
       const classes = [];
-      if (row.type === 'LCP') {
+      if (type === 'LCP') {
         classes.push('hlx-lcp');
-      } else if (row.type === 'CLS') {
+      } else if (type === 'CLS') {
         classes.push('hlx-cls');
-      } else if (row.type === 'TBT') {
+      } else if (type === 'TBT') {
         classes.push('hlx-tbt');
-      } else if (row.type === 'paint') {
+      } else if (type === 'paint') {
         classes.push('hlx-paint');
-      } else if (row.type === 'mark') {
+      } else if (type === 'mark') {
         classes.push('hlx-marker');
       } else {
         classes.push('hlx-resource');
@@ -311,22 +314,19 @@
         classes.push('hlx-before-100kb');
       }
 
-      if (before100kb && row.totalSize !== undefined && Math.round(row.totalSize) > 100000) {
-        before100kb = false;
-      }
-
       const rowElement = document.createElement('div');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
       rowElement.innerHTML += `
         <div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-time">${formatTime(row.time)}</div>
-        <div class="hlx-col hlx-xl hlx-col-url">${row.url ? `<a href="${row.url}" target="_blank">${urlDislay}</a>` : ''}</div>
-        <div class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${row.name || ''}" class="hlx-badge">${row.type === 'mark' ? row.name : row.type}</span></div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-size">${row.size !== undefined ? formatSize(row.size) : ''}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${row.totalSize !== undefined ? formatSize(row.totalSize) : ''}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-duration">${row.duration !== undefined ? formatTime(row.duration) : ''}</div>
-        <div class="hlx-col hlx-m hlx-center hlx-col-preview">${row.details?.preview ? `${row.details.preview}` : ''}</div>
-        <div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(row.details, null, 2))}">Details</a></div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</div>
+        <div class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</div>
+        <div class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>
+        <div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>
+        <div class="hlx-col hlx-m hlx-center hlx-col-preview">${details?.preview ? `${details.preview}` : ''}</div>
+        <div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>
       `;
       grid.appendChild(rowElement);
       index += 1;
@@ -444,8 +444,8 @@
         preview = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
       }
 
+      console.log('resource', startTime, responseEnd);
       data.push({
-        time: startTime,
         start: startTime,
         end: responseEnd,
         url: name,
@@ -468,7 +468,7 @@
     console.log('LCP element', entry.element, entry);
     const tag = entry.element?.tagName;
     return {
-      time: startTime,
+      start: startTime,
       name,
       url,
       type: 'LCP',
@@ -502,7 +502,7 @@
       };
     });
     return {
-      time: startTime,
+      start: startTime,
       name,
       type: 'CLS',
       details: {
@@ -519,7 +519,7 @@
     } = entry;
     const name = length === 1 ? 'TBT' : `TBT ${index + 1} / ${length}`;
     return {
-      time: startTime,
+      start: startTime,
       name,
       type: 'TBT',
       duration,
@@ -532,7 +532,7 @@
       name, startTime,
     } = entry;
     return {
-      time: startTime,
+      start: startTime,
       name,
       type: 'paint',
       details: { entry },
@@ -545,7 +545,7 @@
     } = entry;
     console.log('mark', entry);
     const ret = {
-      time: startTime,
+      start: startTime,
       name,
       type: 'mark',
     };
@@ -581,16 +581,16 @@
       reportMarker(data, 'mark', markToData),
     ]);
 
-    data.sort((a, b) => a.time - b.time);
+    data.sort((a, b) => a.start - b.start);
     let totalSize = 0;
-
     return data.map((entry) => {
       const {
-        time, name, url, type, duration, size, details,
+        start, end, name, url, type, duration, size, details,
       } = entry;
       const ret = {};
 
-      if (time) ret.time = Math.round(time); else ret.time = 0;
+      if (start) ret.start = Math.round(start);
+      if (end) ret.end = Math.round(end); else ret.end = ret.start;
       if (name) ret.name = name;
       if (url) ret.url = url;
       if (type) ret.type = type;
@@ -601,6 +601,9 @@
         ret.size = size;
         ret.totalSize = totalSize;
       }
+
+      ret.before100kb = Math.round(totalSize) <= 100000;
+
       ret.details = details;
       return ret;
     });
