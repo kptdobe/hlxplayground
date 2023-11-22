@@ -236,11 +236,11 @@
         font-weight: bold;
       }
 
-      .hlx-marker {
+      .hlx-mark {
         color: var(--hlx-color-marker);
       }
       
-      .hlx-marker .hlx-badge {
+      .hlx-mark .hlx-badge {
         background-color: var(--hlx-color-marker);
         color: white;
         padding: 4px 8px;
@@ -260,24 +260,23 @@
     document.head.appendChild(style);
   };
 
-  const generateGrid = (data) => {
+  const generateGrid = (data, cols = ['start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details']) => {
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
 
     const head = document.createElement('div');
     head.classList.add('hlx-row');
-    head.innerHTML = `
-      <div class="hlx-col-header hlx-xs"></div>
-      <div class="hlx-col-header hlx-s hlx-right">Start</div>
-      <div class="hlx-col-header hlx-s hlx-right">End</div>
-      <div class="hlx-col-header hlx-xl">URL</div>
-      <div class="hlx-col-header hlx-m hlx-center">Type</div>
-      <div class="hlx-col-header hlx-s hlx-right">Size (KiB)</div>
-      <div class="hlx-col-header hlx-s hlx-right">Total (KiB)</div>
-      <div class="hlx-col-header hlx-s hlx-right">Duration</div>
-      <div class="hlx-col-header hlx-m hlx-center">Info</div>
-      <div class="hlx-col-header hlx-m">Details</div>
-    `;
+    head.innerHTML = '<div class="hlx-col-header hlx-xs"></div>';
+    if (cols.includes('start')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Start</div>';
+    if (cols.includes('end')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">End</div>';
+    if (cols.includes('url')) head.innerHTML += '<div class="hlx-col-header hlx-xl">URL</div>';
+    if (cols.includes('type')) head.innerHTML += '<div class="hlx-col-header hlx-m hlx-center">Type</div>';
+    if (cols.includes('size')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Size (KiB)</div>';
+    if (cols.includes('totalSize')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Total (KiB)</div>';
+    if (cols.includes('duration')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Duration</div>';
+    if (cols.includes('preview')) head.innerHTML += '<div class="hlx-col-header hlx-m hlx-center">Info</div>';
+    if (cols.includes('details')) head.innerHTML += '<div class="hlx-col-header hlx-m">Details</div>';
+
     grid.appendChild(head);
 
     const current = new URL(window.location.href);
@@ -305,7 +304,7 @@
       } else if (type === 'paint') {
         classes.push('hlx-paint');
       } else if (type === 'mark') {
-        classes.push('hlx-marker');
+        classes.push('hlx-mark');
       } else {
         classes.push('hlx-resource');
       }
@@ -316,18 +315,17 @@
 
       const rowElement = document.createElement('div');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
-      rowElement.innerHTML += `
-        <div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</div>
-        <div class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</div>
-        <div class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>
-        <div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>
-        <div class="hlx-col hlx-m hlx-center hlx-col-preview">${details?.preview ? `${details.preview}` : ''}</div>
-        <div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>
-      `;
+      rowElement.innerHTML += `<div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>`;
+      if (cols.includes('start')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</div>`;
+      if (cols.includes('end')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</div>`;
+      if (cols.includes('url')) rowElement.innerHTML += `<div class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</div>`;
+      if (cols.includes('type')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></div>`;
+      if (cols.includes('size')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>`;
+      if (cols.includes('totalSize')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>`;
+      if (cols.includes('duration')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>`;
+      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview">${details?.preview ? `${details.preview}` : ''}</div>`;
+      if (cols.includes('details')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>`;
+
       grid.appendChild(rowElement);
       index += 1;
     });
@@ -351,6 +349,31 @@
     return grid;
   };
 
+  const generateFilters = (list = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
+    const filters = document.createElement('div');
+    filters.classList.add('hlx-filters');
+    filters.innerHTML = '';
+    if (list.includes('resource')) {
+      filters.innerHTML += '<div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>';
+    }
+    if (list.includes('lcp')) {
+      filters.innerHTML += '<div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>';
+    }
+    if (list.includes('tbt')) {
+      filters.innerHTML += '<div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>';
+    }
+    if (list.includes('cls')) {
+      filters.innerHTML += '<div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>';
+    }
+    if (list.includes('paint')) {
+      filters.innerHTML += '<div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>';
+    }
+    if (list.includes('mark')) {
+      filters.innerHTML += '<div class="hlx-mark"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>';
+    }
+    return filters;
+  };
+
   const display = (data) => {
     const container = document.createElement('div');
     container.classList.add('hlx-container');
@@ -364,16 +387,7 @@
     `;
     container.appendChild(header);
 
-    const filters = document.createElement('div');
-    filters.classList.add('hlx-filters');
-    filters.innerHTML = `
-      <div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" checked>Resource</span></div>
-      <div class="hlx-lcp"><span class="hlx-badge"><input type="checkbox" checked>LCP</span></div>
-      <div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" checked>TBT</span></div>
-      <div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" checked>CLS</span></div>
-      <div class="hlx-paint"><span class="hlx-badge"><input type="checkbox" checked>paint</span></div>
-      <div class="hlx-marker"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>
-    `;
+    const filters = generateFilters();
     container.appendChild(filters);
 
     container.querySelector('.hlx-report-close').addEventListener('click', () => {
@@ -588,7 +602,7 @@
       } = entry;
       const ret = {};
 
-      if (start) ret.start = Math.round(start);
+      if (start) ret.start = Math.round(start); else ret.start = 0;
       if (end) ret.end = Math.round(end); else ret.end = ret.start;
       if (name) ret.name = name;
       if (url) ret.url = url;
