@@ -33,7 +33,7 @@
     style.innerHTML = `
       :root {
         --hlx-color-dialog: rgba(26, 26, 26, 1);
-        --hlx-color-100kb: rgba(255, 255, 255, 0.1);
+        --hlx-color-100kb: rgba(150, 0, 0, 0.1);
 
         --hlx-color-link: white;
         --hlx-color-hover: #136ff6;
@@ -157,7 +157,7 @@
       }
 
       .hlx-xs {
-        max-width: 30px;
+        max-width: 35px;
       }
       
       .hlx-s {
@@ -333,12 +333,12 @@
         classes.push('hlx-resource');
       }
 
-      if (before100kb && row.totalSize !== undefined && row.totalSize > 100000) {
-        before100kb = false;
-      }
-
       if (before100kb) {
         classes.push('hlx-before-100kb');
+      }
+
+      if (before100kb && row.totalSize !== undefined && Math.round(row.totalSize) > 100000) {
+        before100kb = false;
       }
 
       const rowElement = document.createElement('div');
