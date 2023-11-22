@@ -480,17 +480,17 @@
     const views = document.createElement('div');
     views.classList.add('hlx-views');
     views.innerHTML = `
-      <label><input type="radio" name="view" value="LCP">LCP Focus</label>
+      <label><input type="radio" name="view" value="LCP" checked>LCP Focus</label>
       <label><input type="radio" name="view" value="CLS" >CLS Focus</label>
-      <label><input type="radio" name="view" value="all" checked>View All</label>
+      <label><input type="radio" name="view" value="all">View All</label>
     `;
 
     container.appendChild(views);
 
-    const filters = generateFilters(VIEWS.all.filters, VIEWS.all.defaultFilters);
+    const filters = generateFilters(VIEWS.LCP.filters, VIEWS.LCP.defaultFilters);
     container.appendChild(filters);
 
-    const grid = generateGrid(VIEWS.all.data(data), VIEWS.all.cols, VIEWS.all.defaultFilters);
+    const grid = generateGrid(VIEWS.LCP.data(data), VIEWS.LCP.cols, VIEWS.LCP.defaultFilters);
     container.appendChild(grid);
 
     views.querySelectorAll('input').forEach((input) => {
