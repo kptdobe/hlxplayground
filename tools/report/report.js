@@ -371,6 +371,21 @@
     if (list.includes('mark')) {
       filters.innerHTML += '<div class="hlx-mark"><span class="hlx-badge"><input type="checkbox" checked>mark</span></div>';
     }
+
+    filters.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const type = checkbox.parentElement.parentElement.classList[0];
+        const rows = document.querySelectorAll(`.hlx-grid .${type}`);
+        rows.forEach((row) => {
+          if (checkbox.checked) {
+            row.classList.remove('hlx-hidden');
+          } else {
+            row.classList.add('hlx-hidden');
+          }
+        });
+      });
+    });
+
     return filters;
   };
 
@@ -398,20 +413,6 @@
 
     const grid = generateGrid(data);
     container.appendChild(grid);
-
-    container.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        const type = checkbox.parentElement.parentElement.classList[0];
-        const rows = grid.querySelectorAll(`.${type}`);
-        rows.forEach((row) => {
-          if (checkbox.checked) {
-            row.classList.remove('hlx-hidden');
-          } else {
-            row.classList.add('hlx-hidden');
-          }
-        });
-      });
-    });
   };
 
   /* report construction */
