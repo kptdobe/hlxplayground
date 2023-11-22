@@ -413,9 +413,10 @@
       defaultFilters: ['resource', 'lcp', 'paint'],
       cols: ['index', 'start', 'url', 'type', 'size', 'totalSize', 'preview'],
       data: (d) => {
+        const sorted = VIEWS.all.data(d);
         const ret = [];
-        for (let i = 0; i < d.length; i += 1) {
-          const entry = d[i];
+        for (let i = 0; i < sorted.length; i += 1) {
+          const entry = sorted[i];
           ret.push(entry);
           if (entry.name === 'first-contentful-paint') {
             break;
@@ -428,16 +429,39 @@
       filters: ['resource', 'cls', 'mark', 'paint'],
       defaultFilters: ['resource', 'cls'],
       cols: ['end', 'url', 'type', 'preview'],
-      data: (d) => {
-        d.sort((a, b) => a.end - b.end);
-        return d;
+      data: (data) => {
+        console.log('CLS data', data);
+        const ret = data.map((d) => {
+          delete d.before100kb;
+          return d;
+        });
+        ret.sort((a, b) => a.end - b.end);
+        return ret;
       },
     },
     all: {
       filters: undefined,
       cols: undefined,
       defaultFilters: undefined,
-      data: (d) => d,
+      data: (data) => {
+        let ret = data.map((d) => d);
+
+        ret.sort((a, b) => a.start - b.start);
+
+        let totalSize = 0;
+
+        ret = ret.map((entry) => {
+          const { size } = entry;
+          if (size !== undefined) {
+            totalSize += size;
+            entry.totalSize = totalSize;
+          }
+          entry.before100kb = Math.round(totalSize) < 101000;
+          return entry;
+        });
+
+        return ret;
+      },
     },
   };
 
@@ -672,11 +696,9 @@
       reportMarker(data, 'mark', markToData),
     ]);
 
-    data.sort((a, b) => a.start - b.start);
-    let totalSize = 0;
     return data.map((entry) => {
       const {
-        start, end, name, url, type, duration, size, details, entryType,
+        start, end, name, url, type, duration, details, entryType, size,
       } = entry;
       const ret = {};
 
@@ -687,14 +709,7 @@
       if (type) ret.type = type;
       if (entryType) ret.entryType = entryType; else ret.entryType = type.toLowerCase();
       if (duration !== undefined) ret.duration = Math.round(duration);
-
-      if (size !== undefined) {
-        totalSize += size;
-        ret.size = size;
-        ret.totalSize = totalSize;
-      }
-
-      ret.before100kb = Math.round(totalSize) < 101000;
+      if (size !== undefined) ret.size = size;
 
       ret.details = details;
       return ret;
