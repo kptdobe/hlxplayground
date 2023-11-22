@@ -414,15 +414,9 @@
       cols: ['index', 'start', 'url', 'type', 'size', 'totalSize', 'preview'],
       data: (d) => {
         const sorted = VIEWS.all.data(d);
-        const ret = [];
-        for (let i = 0; i < sorted.length; i += 1) {
-          const entry = sorted[i];
-          ret.push(entry);
-          if (entry.name === 'first-contentful-paint') {
-            break;
-          }
-        }
-        return ret;
+        const lastIndex = sorted.findLastIndex((entry) => entry.type === 'LCP');
+        if (lastIndex === -1) return sorted;
+        return sorted.slice(0, lastIndex + 1);
       },
     },
     CLS: {
