@@ -1,3 +1,4 @@
+/* eslint-disable prefer-object-spread */
 (() => {
   /* display */
   const formatTime = (x) => (x !== 0 ? (Math.round(x * 100) / 100) : 0);
@@ -205,6 +206,22 @@
         color: var(--hlx-color-cls);
       }
 
+      .hlx-row.hlx-cls-end {
+        border-bottom: 4px solid var(--hlx-color-cls);
+      }
+
+      .hlx-row.hlx-cls-start {
+        border-top: 4px solid var(--hlx-color-cls);
+      }
+      
+      .hlx-row.hlx-cls-start,
+      .hlx-row.hlx-cls-end,
+      .hlx-row.hlx-cls-suspect {
+        border-left: 4px solid var(--hlx-color-cls);
+        border-right: 4px solid var(--hlx-color-cls);
+      }
+
+
       .hlx-cls .hlx-badge {
         background-color: var(--hlx-color-cls);
         color: white;
@@ -305,7 +322,8 @@
     let index = 0;
     data.forEach((row) => {
       const {
-        url, type, size, totalSize, duration, details, start, end, name, before100kb, entryType,
+        // eslint-disable-next-line max-len
+        url, type, size, totalSize, duration, details, start, end, name, before100kb, entryType, css,
       } = row;
       let urlDislay = url;
       if (url) {
@@ -335,6 +353,10 @@
 
       if (!defaultFilters.includes(entryType)) {
         classes.push('hlx-hidden');
+      }
+
+      if (css) {
+        classes.push(css);
       }
 
       const rowElement = document.createElement('div');
@@ -424,12 +446,29 @@
       defaultFilters: ['resource', 'cls'],
       cols: ['end', 'url', 'type', 'preview'],
       data: (data) => {
-        const ret = data.map((d) => {
-          delete d.before100kb;
-          return d;
-        });
-        ret.sort((a, b) => a.end - b.end);
-        return ret;
+        data.sort((a, b) => a.end - b.end);
+        let running = false;
+        let count = 0;
+        for (let i = data.length - 1; i >= 0; i -= 1) {
+          const entry = data[i];
+          if (entry.entryType === 'cls') {
+            // found CLS entry
+            entry.css = 'hlx-cls-end';
+            running = true;
+            count = 0;
+          } else if (running) {
+            entry.css = 'hlx-cls-suspect';
+            if (entry.entryType === 'resource') {
+              count += 1;
+              if (count === 3) {
+                entry.css = 'hlx-cls-start';
+                count = 0;
+                running = false;
+              }
+            }
+          }
+        }
+        return data;
       },
     },
     all: {
@@ -437,13 +476,11 @@
       cols: undefined,
       defaultFilters: undefined,
       data: (data) => {
-        let ret = data.map((d) => d);
-
-        ret.sort((a, b) => a.start - b.start);
+        data.sort((a, b) => a.start - b.start);
 
         let totalSize = 0;
 
-        ret = ret.map((entry) => {
+        return data.map((entry) => {
           const { size } = entry;
           if (size !== undefined) {
             totalSize += size;
@@ -452,8 +489,6 @@
           entry.before100kb = Math.round(totalSize) < 101000;
           return entry;
         });
-
-        return ret;
       },
     },
   };
@@ -490,7 +525,14 @@
     const filters = generateFilters(VIEWS.LCP.filters, VIEWS.LCP.defaultFilters);
     container.appendChild(filters);
 
-    const grid = generateGrid(VIEWS.LCP.data(data), VIEWS.LCP.cols, VIEWS.LCP.defaultFilters);
+    // eslint-disable-next-line max-len
+    const clone = (items) => items.map((item) => (Array.isArray(item) ? clone(item) : Object.assign({}, item)));
+
+    const grid = generateGrid(
+      VIEWS.LCP.data(clone(data)),
+      VIEWS.LCP.cols,
+      VIEWS.LCP.defaultFilters,
+    );
     container.appendChild(grid);
 
     views.querySelectorAll('input').forEach((input) => {
@@ -503,7 +545,11 @@
         const f = generateFilters(view.filters, view.defaultFilters);
         container.appendChild(f);
 
-        const g = generateGrid(view.data(data), view.cols, view.defaultFilters);
+        const g = generateGrid(
+          view.data(clone(data)),
+          view.cols,
+          view.defaultFilters,
+        );
         container.appendChild(g);
       });
     });
