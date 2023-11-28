@@ -356,6 +356,10 @@
         classes.push(css);
       }
 
+      const filteredPreview = details?.preview ? details?.preview.replace(/</gm, '&lt;').replace(/>/gm, '&gt;').replace(/"/gm, '&quot;') : null;
+      const preview = filteredPreview || details?.previewHTML || '';
+      const previewTitle = filteredPreview || '';
+
       const rowElement = document.createElement('div');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
       rowElement.innerHTML = '';
@@ -367,7 +371,7 @@
       if (cols.includes('size')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>`;
       if (cols.includes('totalSize')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>`;
       if (cols.includes('duration')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>`;
-      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview" title="${details?.preview ? `${details.preview}` : ''}">${details?.preview ? `${details.preview}` : ''}</div>`;
+      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview" title="${previewTitle}">${preview}</div>`;
       if (cols.includes('details')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>`;
 
       grid.appendChild(rowElement);
@@ -584,7 +588,7 @@
         responseEnd,
       } = entry;
 
-      let preview = null;
+      let previewHTML = null;
 
       const tcpHandshake = connectEnd - connectStart;
       const dnsLookup = domainLookupEnd - domainLookupStart;
@@ -593,7 +597,7 @@
         if (tcpHandshake > 0) title.push(`TCP handshake: ${formatTimeMS(tcpHandshake)}`);
         if (dnsLookup > 0) title.push(`DNS lookup: ${formatTimeMS(dnsLookup)}`);
         if (renderBlockingStatus !== 'non-blocking') title.push(`Render blocking: ${renderBlockingStatus}`);
-        preview = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
+        previewHTML = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
       }
 
       data.push({
@@ -605,7 +609,7 @@
         duration,
         size: transferSize,
         details: {
-          preview: preview || null,
+          previewHTML: previewHTML || null,
           entry,
         },
       });
@@ -626,7 +630,7 @@
       type: 'LCP',
       // duration,
       details: {
-        preview: tag ? entry.element.outerHTML.replace(/</gm, '&lt;').replace(/>/gm, '&gt;').replace(/"/gm, '&quot;') : null,
+        preview: tag ? entry.element.outerHTML : null,
         id: entry.id,
         tag,
         renderTime: entry.renderTime,
