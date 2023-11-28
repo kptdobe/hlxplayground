@@ -1,29 +1,61 @@
-// carousel.js
-export function decorate(block) {
-  const slides = block.querySelectorAll('.carousel > div');
-  const bulletsContainer = document.createElement('div');
-  bulletsContainer.className = 'carousel-bullets';
+export default function decorate(block) {
+  const slides = block.querySelectorAll(':scope > div');
+  const carouselInner = document.createElement('div');
+  carouselInner.className = 'carouselInner';
 
   slides.forEach((slide, index) => {
-    const bullet = document.createElement('span');
-    bullet.className = 'carousel-bullet';
-    bullet.addEventListener('click', () => showSlide(index));
-    bulletsContainer.appendChild(bullet);
+    const slideItem = document.createElement('div');
+    slideItem.className = `carouselItem ${index === 0 ? 'active' : ''}`;
+
+    const heading = slide.querySelector('div:first-child');
+    const headingH2 = document.createElement('h2');
+    headingH2.className = 'carouselHeading';
+    headingH2.textContent = heading.textContent;
+    slideItem.appendChild(headingH2);
+
+    const imageContainer = slide.querySelector('div:last-child');
+    imageContainer.classList.add('carouselImageContainer');
+    slideItem.appendChild(imageContainer);
+
+    carouselInner.appendChild(slideItem);
   });
 
-  block.appendChild(bulletsContainer);
+  const indicators = document.createElement('div');
+  indicators.className = 'carouselIndicators';
+  slides.forEach((_, index) => {
+    const indicator = document.createElement('button');
+    indicator.className = `carouselIndicator ${index === 0 ? 'active' : ''}`;
+    indicator.setAttribute('data-slide-to', index);
+    indicators.appendChild(indicator);
+  });
 
-  let currentIndex = 0;
+  block.innerHTML = '';
+  block.appendChild(carouselInner);
+  block.appendChild(indicators);
 
-  function showSlide(index) {
-    slides[currentIndex].classList.remove('active');
-    bulletsContainer.children[currentIndex].classList.remove('active');
-    
-    currentIndex = index >= slides.length ? 0 : index < 0 ? slides.length - 1 : index;
+  // Carousel functionality
+  let activeIndex = 0;
+  const changeSlide = (index) => {
+    const items = block.querySelectorAll('.carouselItem');
+    const indicators = block.querySelectorAll('.carouselIndicator');
 
-    slides[currentIndex].classList.add('active');
-    bulletsContainer.children[currentIndex].classList.add('active');
-  }
+    items[activeIndex].classList.remove('active');
+    indicators[activeIndex].classList.remove('active');
 
-  showSlide(currentIndex);
+    items[index].classList.add('active');
+    indicators[index].classList.add('active');
+    activeIndex = index;
+  };
+
+  indicators.querySelectorAll('.carouselIndicator').forEach(indicator => {
+    indicator.addEventListener('click', () => {
+      const index = parseInt(indicator.getAttribute('data-slide-to'));
+      changeSlide(index);
+    });
+  });
+
+  setInterval(() => {
+    const nextIndex = (activeIndex + 1) % slides.length;
+    changeSlide(nextIndex);
+  }, 5000);
 }
