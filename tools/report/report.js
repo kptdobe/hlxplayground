@@ -1,4 +1,4 @@
-/* eslint-disable prefer-object-spread */
+/* eslint-disable prefer-object-spread, no-console */
 (() => {
   /* display */
   const formatTime = (x) => (x !== 0 ? (Math.round(x * 100) / 100) : 0);
