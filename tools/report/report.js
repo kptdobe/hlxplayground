@@ -189,7 +189,9 @@
         color: var(--hlx-color-tbt);
       }
 
-      .hlx-badge {
+      .hlx-badge,
+      .hlx-penalty,
+      .hlx-col-preview {
         cursor: default;
       }
 
@@ -220,7 +222,6 @@
         border-left: 4px solid var(--hlx-color-cls);
         border-right: 4px solid var(--hlx-color-cls);
       }
-
 
       .hlx-cls .hlx-badge {
         background-color: var(--hlx-color-cls);
@@ -260,7 +261,7 @@
       .hlx-mark {
         color: var(--hlx-color-marker);
       }
-      
+
       .hlx-mark .hlx-badge {
         background-color: var(--hlx-color-marker);
         color: white;
@@ -272,10 +273,6 @@
 
       .hlx-col-details pre {
         color: white;
-      }
-
-      .hlx-penalty {
-        cursor: default;
       }
     `;
     document.head.appendChild(style);
@@ -370,7 +367,7 @@
       if (cols.includes('size')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>`;
       if (cols.includes('totalSize')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>`;
       if (cols.includes('duration')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>`;
-      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview">${details?.preview ? `${details.preview}` : ''}</div>`;
+      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview" title="${details?.preview ? `${details.preview}` : ''}">${details?.preview ? `${details.preview}` : ''}</div>`;
       if (cols.includes('details')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>`;
 
       grid.appendChild(rowElement);
@@ -629,7 +626,7 @@
       type: 'LCP',
       // duration,
       details: {
-        preview: tag ? entry.element.outerHTML.replace(/</gm, '&lt;').replace(/>/gm, '&gt;') : null,
+        preview: tag ? entry.element.outerHTML.replace(/</gm, '&lt;').replace(/>/gm, '&gt;').replace(/"/gm, '&quot;') : null,
         id: entry.id,
         tag,
         renderTime: entry.renderTime,
