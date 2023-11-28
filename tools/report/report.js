@@ -629,7 +629,7 @@
       type: 'LCP',
       // duration,
       details: {
-        preview: tag ? `&lt;${tag.toLowerCase()}&gt;` : null,
+        preview: tag ? entry.element.outerHTML.replace(/</gm, '&lt;').replace(/>/gm, '&gt;') : null,
         id: entry.id,
         tag,
         renderTime: entry.renderTime,
