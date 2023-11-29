@@ -19,7 +19,9 @@ javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';
 - Load a page
 - Click on the bookmarklet link
 
-## Project extension: performance.mark
+## Project extension
+
+### performance.mark
 
 In a project, you use `performance.mark()` to add custom entries in the report "timeline" and visualise when they happen in the loading sequence. Here is an example:
 
@@ -32,6 +34,31 @@ The first parameter is the name of the mark. All marks are classified with the `
 The second parameter is optional but very useful to share some "details":
 - the `preview` property will be displayed in the "Info" column of the report
 - the full object will be displayed when clicking on the `Details` link
+
+### first section mutation observer
+
+To optimise the LCP and avoid CLS, the first section must be displayed as quickly as possible and not be changed anymore afterward. Sometimes, external factors (css, js, loading sequence) change the first section and introduces CLS or may even delay the LCP. To track this, you can easily add a `MutationObserver` on the first section:
+
+```
+  const observer = new MutationObserver((mutationsList) => {
+    mutationsList.forEach((m) => {
+      if (m.type === 'childList') {
+        if (m.addedNodes.length > 0) {
+          performance.mark('first-section-mutation', { detail: { preview: `Node(s) added to ${m.target.outerHTML}` }});
+        }
+        if (m.removedNodes.length > 0) {
+          performance.mark('first-section-mutation', { detail: { preview: `Node(s) removed from ${m.target.outerHTML}` }});
+        }
+      } else if (m.type === 'attributes') {
+        performance.mark('first-section-mutation', { detail: { preview: `Attribute "${m.attributeName}" new value: "${m.target.getAttribute(m.attributeName)}"` }});
+      }
+    });
+  });
+  // section must be the first one
+  observer.observe(section, { attributes: true, childList: true, subtree: true });
+```
+
+In the context of a Helix site, you will need to the observer in the `updateSectionsStatus` method - see sample commit here: https://github.com/adobe/helix-website/commit/65a6295a470d69872e32279684c2a6ae6a719a5b
 
 ## Analysis
 
