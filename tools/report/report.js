@@ -293,6 +293,7 @@
     data,
     cols = ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details'],
     defaultFilters = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
+    sortedBy = 'start',
   ) => {
     const grid = document.createElement('div');
     grid.classList.add('hlx-grid');
@@ -301,8 +302,8 @@
     head.classList.add('hlx-row');
     head.innerHTML = '';
     if (cols.includes('index')) head.innerHTML += '<div class="hlx-col-header hlx-xs hlx-right">#</div>';
-    if (cols.includes('start')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Start</div>';
-    if (cols.includes('end')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">End</div>';
+    if (cols.includes('start')) head.innerHTML += `<div class="hlx-col-header hlx-s hlx-right">Start${sortedBy === 'start' ? '&darr;' : ''}</div>`;
+    if (cols.includes('end')) head.innerHTML += `<div class="hlx-col-header hlx-s hlx-right">End${sortedBy === 'end' ? '&darr;' : ''}</div>`;
     if (cols.includes('url')) head.innerHTML += '<div class="hlx-col-header hlx-xl">URL</div>';
     if (cols.includes('type')) head.innerHTML += '<div class="hlx-col-header hlx-m hlx-center">Type</div>';
     if (cols.includes('size')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Size (KiB)</div>';
@@ -434,9 +435,11 @@
     LCP: {
       filters: ['resource', 'lcp', 'mark', 'paint'],
       defaultFilters: ['resource', 'lcp', 'paint'],
-      cols: ['index', 'start', 'url', 'type', 'size', 'totalSize', 'preview'],
+      cols: ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'preview'],
+      sortedBy: 'end',
       data: (d) => {
         const sorted = VIEWS.all.data(d);
+        sorted.sort((a, b) => a.end - b.end);
         const lastIndex = sorted.findLastIndex((entry) => entry.type === 'LCP');
         if (lastIndex === -1) return sorted;
         return sorted.slice(0, lastIndex + 1);
@@ -446,6 +449,7 @@
       filters: ['resource', 'cls', 'mark', 'paint'],
       defaultFilters: ['resource', 'cls'],
       cols: ['end', 'url', 'type', 'preview'],
+      sortedBy: 'end',
       data: (data) => {
         data.sort((a, b) => a.end - b.end);
         let running = false;
@@ -533,6 +537,7 @@
       VIEWS.LCP.data(clone(data)),
       VIEWS.LCP.cols,
       VIEWS.LCP.defaultFilters,
+      VIEWS.LCP.sortedBy,
     );
     container.appendChild(grid);
 
@@ -550,6 +555,7 @@
           view.data(clone(data)),
           view.cols,
           view.defaultFilters,
+          view.sortedBy,
         );
         container.appendChild(g);
       });
