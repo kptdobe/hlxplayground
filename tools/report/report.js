@@ -28,11 +28,11 @@
     });
   };
 
-  const setupStyles = () => {
+  const getStyles = () => {
     const style = document.createElement('style');
     style.id = 'hlx-report-style';
     style.innerHTML = `
-      :root {
+      :host {
         --hlx-color-dialog: rgba(26, 26, 26, 1);
         --hlx-color-100kb: rgba(150, 0, 0, 0.1);
 
@@ -58,23 +58,21 @@
         font-family: sans-serif;
         font-size: 14px;
         color: white;
-        border-radius: 6px;
-        line-height: 1.8;
       }
 
-      .hlx-container .hlx-header {
+      .hlx-header {
         padding: 10px;
         background-color: var(--hlx-color-dialog);
       }
 
-      .hlx-container .hlx-header h1 {
+      .hlx-header h1 {
         font-size: 20px;
         line-height: 1;
         margin-bottom: 10px;
         font-weight: bold;
-        }
+      }
     
-      .hlx-container .hlx-header .hlx-report-close {
+      .hlx-header .hlx-report-close {
         position: absolute;
         top: 10px;
         right: 10px;
@@ -83,11 +81,11 @@
         padding: 4px;
       }
 
-      .hlx-container a:any-link {
+      a:any-link {
         color: var(--hlx-color-link);
       }
 
-      .hlx-container a:hover {
+      a:hover {
         text-decoration: underline;
         color: var(--hlx-color-hover);
       }
@@ -121,9 +119,10 @@
         display: flex;
         flex-wrap: wrap;
         border-top: 1px solid black;
+        line-height: 1.8;
       }
 
-      .hlx-container > div > .hlx-row:first-of-type {
+      div > .hlx-row:first-of-type {
         font-weight: bold;
         font-size: 15px;
       }
@@ -131,7 +130,7 @@
       .hlx-row:last-child {
         border-bottom: 1px solid black;
       }
-      
+
       .hlx-col-header,
       .hlx-col {
         flex: 1;
@@ -275,7 +274,7 @@
         color: white;
       }
     `;
-    document.head.appendChild(style);
+    return style;
   };
 
   const applyFilter = (type, show, el) => {
@@ -424,7 +423,7 @@
     filters.querySelectorAll('.hlx-filters input').forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
         const type = checkbox.parentElement.parentElement.classList[0];
-        applyFilter(type, checkbox.checked, document.querySelector('.hlx-grid'));
+        applyFilter(type, checkbox.checked, document.querySelector('hlx-perf-report').shadowRoot.querySelector('.hlx-grid'));
       });
     });
 
@@ -498,10 +497,24 @@
     },
   };
 
+  if (!customElements.get('hlx-perf-report')) {
+    class PerfReport extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+    }
+    customElements.define('hlx-perf-report', PerfReport);
+  }
+
   const display = (data) => {
+    const webComponent = document.createElement('hlx-perf-report');
+    webComponent.shadowRoot.append(getStyles());
+
     const container = document.createElement('div');
     container.classList.add('hlx-container');
     container.id = 'hlx-report-dialog';
+    webComponent.shadowRoot.append(container);
 
     const header = document.createElement('div');
     header.classList.add('hlx-header');
@@ -515,7 +528,7 @@
       container.remove();
     });
 
-    document.body.prepend(container);
+    document.body.prepend(webComponent);
 
     const views = document.createElement('div');
     views.classList.add('hlx-views');
@@ -560,6 +573,8 @@
         container.appendChild(g);
       });
     });
+
+    return container;
   };
 
   /* report construction */
@@ -765,16 +780,12 @@
   const cleanup = () => {
     console.clear();
 
-    const s = document.getElementById('hlx-report-style');
+    const s = document.querySelector('hlx-perf-report');
     if (s) s.remove();
-
-    const g = document.getElementById('hlx-report-dialog');
-    if (g) g.remove();
   };
 
   const main = async () => {
     cleanup();
-    setupStyles();
     const data = await getPerformanceReport();
     // console.table(data);
     display(data);
