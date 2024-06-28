@@ -437,8 +437,7 @@
       cols: ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'preview'],
       sortedBy: 'end',
       data: (d) => {
-        const sorted = VIEWS.all.data(d);
-        sorted.sort((a, b) => a.end - b.end);
+        const sorted = VIEWS.all.data(d, true);
         const lastIndex = sorted.findLastIndex((entry) => entry.type === 'LCP');
         if (lastIndex === -1) return sorted;
         return sorted.slice(0, lastIndex + 1);
@@ -479,8 +478,12 @@
       filters: undefined,
       cols: undefined,
       defaultFilters: undefined,
-      data: (data) => {
-        data.sort((a, b) => a.start - b.start);
+      data: (data, sortByEndData = false) => {
+        if (sortByEndData) {
+          data.sort((a, b) => a.end - b.end);
+        } else {
+          data.sort((a, b) => a.start - b.start);
+        }
 
         let totalSize = 0;
 
