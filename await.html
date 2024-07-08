@@ -1,0 +1,38 @@
+<html>
+<head>
+    <title>Async Await</title>
+</head>
+<body>
+    <h1>Async Await</h1>
+    <div id="for-loop"><h2>for loop</h2></div>
+    <div id="promise-all"><h2>Promise.all</h2></div>
+    <script>
+      async function doSomething(el, ms) {
+          return new Promise((resolve, reject) => {
+              setTimeout(() => {
+                el.innerHTML += `<p>Done something in ${ms} ms</p>`;
+              }, ms);
+          });
+      }
+
+      const ms = [3000, 2000, 1000, 500, 100, 1000];
+      const forLoop = document.getElementById('for-loop');
+      const promiseAll = document.getElementById('promise-all');
+
+      async function forLoopExample() {
+          for (let i = 0; i < 5; i++) {
+              await doSomething(forLoop, ms[i]);
+          }
+      }
+
+      forLoopExample();
+
+      async function promiseAllExample() {
+          const promises = ms.map((m) => doSomething(promiseAll, m));
+          await Promise.all(promises);
+      }
+
+      promiseAllExample();
+  </script>
+</body>
+</html>
