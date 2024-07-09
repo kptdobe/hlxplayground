@@ -1,7 +1,7 @@
 /* eslint-disable prefer-object-spread, no-console */
 (() => {
   /* display */
-  const formatTime = (x) => (x !== 0 ? (Math.round(x * 100) / 100) : 0);
+  const formatTime = (x) => (x !== 0 ? Math.round(x) : 0);
   const formatSize = (x) => (x !== 0 ? (Math.round(x / 1000)) : 0);
   const formatTimeMS = (x) => `${formatTime(x)}ms`;
 
@@ -49,7 +49,7 @@
       .hlx-container {
         position: fixed;
         inset: 0;
-        z-index: 99999;
+        z-index: 9999999999;
         overflow-y: scroll;
         
         background-color: var(--hlx-color-dialog);
@@ -194,6 +194,10 @@
         cursor: default;
       }
 
+      .hlx-ok {
+        margin-right: 10px;
+      }
+
       .hlx-tbt .hlx-badge {
         background-color: var(--hlx-color-tbt);
         color: white;
@@ -291,7 +295,7 @@
   const generateGrid = (
     data,
     cols = ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details'],
-    defaultFilters = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
+    defaultFilters = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
     sortedBy = 'start',
   ) => {
     const grid = document.createElement('div');
@@ -340,6 +344,8 @@
         classes.push('hlx-paint');
       } else if (type === 'mark') {
         classes.push('hlx-mark');
+      } else if (type === 'navigation') {
+        classes.push('hlx-navigation');
       } else {
         classes.push('hlx-resource');
       }
@@ -397,10 +403,13 @@
     return grid;
   };
 
-  const generateFilters = (list = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'], defaults = ['resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
+  const generateFilters = (list = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'], defaults = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
     const filters = document.createElement('div');
     filters.classList.add('hlx-filters');
     filters.innerHTML = '';
+    if (list.includes('navigation')) {
+      filters.innerHTML += `<div class="hlx-navigation"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('navigation') ? 'checked' : ''}>Navigation</span></div>`;
+    }
     if (list.includes('resource')) {
       filters.innerHTML += `<div class="hlx-resource"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('resource') ? 'checked' : ''}>Resource</span></div>`;
     }
@@ -432,8 +441,8 @@
 
   const VIEWS = {
     LCP: {
-      filters: ['resource', 'lcp', 'mark', 'paint'],
-      defaultFilters: ['resource', 'lcp', 'paint'],
+      filters: ['navigation', 'resource', 'lcp', 'mark', 'paint'],
+      defaultFilters: ['navigation', 'resource', 'lcp', 'paint'],
       cols: ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'preview'],
       sortedBy: 'end',
       data: (d) => {
@@ -595,6 +604,65 @@
     pols.observe({ type, buffered: true });
   });
 
+  const reportNavigation = async (data) => {
+    const entries = await getEntries('navigation');
+    entries.forEach((entry) => {
+      const {
+        name,
+        initiatorType,
+        startTime,
+        duration,
+        transferSize,
+        responseEnd,
+        responseStart,
+        activationStart,
+        redirectCount,
+        redirectStart,
+        redirectEnd,
+      } = entry;
+
+
+      let previewHTML = '';
+
+      const ok = [];
+      const penalty = [];
+      const ttfb = responseStart - (activationStart || 0);
+      if (ttfb > 800) {
+        penalty.push(`High TTFB: ${formatTimeMS(ttfb)}`);
+      } else {
+        ok.push(`TTFB: ${formatTimeMS(ttfb)}`);
+      }
+
+      if (redirectCount > 0) {
+        const redirectTime = redirectEnd - redirectStart;
+        const s = redirectCount > 1 ? 's' : '';
+        penalty.push(`${redirectCount} redirect${s} - cost: ${formatTimeMS(redirectTime)}`);
+      }
+
+      if (ok.length > 0) {
+        previewHTML += `<span class="hlx-ok">${ok.join(' | ')}</span>`;
+      }
+
+      if (penalty.length > 0) {
+        previewHTML += `<span class="hlx-penalty">⚠️ ${penalty.join(' ⚠️ ')}</span>`;
+      }
+
+      data.push({
+        start: startTime,
+        end: responseEnd,
+        url: name,
+        type: initiatorType,
+        entryType: 'navigation',
+        duration,
+        size: transferSize,
+        details: {
+          previewHTML,
+          entry,
+        },
+      });
+    });
+  };
+
   const reportResources = async (data) => {
     const entries = await getEntries('resource');
     entries.forEach((entry) => {
@@ -621,7 +689,7 @@
         if (tcpHandshake > 0) title.push(`TCP handshake: ${formatTimeMS(tcpHandshake)}`);
         if (dnsLookup > 0) title.push(`DNS lookup: ${formatTimeMS(dnsLookup)}`);
         if (renderBlockingStatus !== 'non-blocking') title.push(`Render blocking: ${renderBlockingStatus}`);
-        previewHTML = `<span class="hlx-penalty" title="${title.join('\n')}">⚠️</span>`;
+        previewHTML = `<span class="hlx-penalty">⚠️ ${title.join(' ⚠️ ')}</span>`;
       }
 
       data.push({
@@ -752,6 +820,7 @@
     const data = [];
 
     await Promise.all([
+      reportNavigation(data),
       reportResources(data),
       reportMarker(data, 'largest-contentful-paint', LCPToData),
       reportMarker(data, 'layout-shift', CLSToData),
