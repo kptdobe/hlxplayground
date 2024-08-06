@@ -647,7 +647,7 @@
         previewHTML += `<span class="hlx-penalty">⚠️ ${penalty.join(' ⚠️ ')}</span>`;
       }
 
-      data.push({
+      const d = {
         start: startTime,
         end: responseEnd,
         url: name,
@@ -656,10 +656,15 @@
         duration,
         size: transferSize,
         details: {
-          previewHTML,
           entry,
         },
-      });
+      };
+
+      if (previewHTML) {
+        d.details.previewHTML = previewHTML;
+      }
+
+      data.push(d);
     });
   };
 
@@ -692,7 +697,7 @@
         previewHTML = `<span class="hlx-penalty">⚠️ ${title.join(' ⚠️ ')}</span>`;
       }
 
-      data.push({
+      const d = {
         start: startTime,
         end: responseEnd,
         url: name,
@@ -701,10 +706,15 @@
         duration,
         size: transferSize,
         details: {
-          previewHTML: previewHTML || null,
           entry,
         },
-      });
+      };
+
+      if (previewHTML) {
+        d.details.previewHTML = previewHTML;
+      }
+
+      data.push(d);
     });
   };
 
