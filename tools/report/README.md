@@ -19,6 +19,8 @@ javascript:(() => %7Bconst s=document.createElement('script');s.id='hlx-report';
 - Load a page
 - Click on the bookmarklet link
 
+For more accuracy, open your DevTools and disable / clear all caches before loading the page - you'll get a report which closer to what PageSpeed does.
+
 ## Project extension
 
 ### performance.mark
