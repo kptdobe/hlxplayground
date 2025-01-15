@@ -53,7 +53,7 @@
         overflow-y: scroll;
         
         background-color: var(--hlx-color-dialog);
-        margin: 2px;
+        margin: 1px;
 
         font-family: sans-serif;
         font-size: 14px;
@@ -180,7 +180,6 @@
       }
 
       .hlx-xl {
-        width: 30%;
         max-width: 500px;
       }
 
