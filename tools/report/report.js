@@ -130,10 +130,14 @@
         border-bottom: 1px solid black;
       }
 
-      .hlx-col-header,
-      .hlx-col {
+      .hlx-col-header {
         flex: 1;
         padding: 2px 0;
+      }
+
+      .hlx-col {
+        flex: 1;
+        padding: 2px 5px;
       }
 
       .hlx-col {
