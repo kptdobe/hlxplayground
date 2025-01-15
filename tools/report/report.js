@@ -53,7 +53,7 @@
         overflow-y: scroll;
         
         background-color: var(--hlx-color-dialog);
-        margin: 20px;
+        margin: 2px;
 
         font-family: sans-serif;
         font-size: 14px;
@@ -113,11 +113,10 @@
 
       .hlx-grid {
         margin: 10px;
+        table-layout: fixed;
       }
 
       .hlx-row {
-        display: flex;
-        flex-wrap: wrap;
         border-top: 1px solid black;
         line-height: 1.8;
       }
@@ -134,7 +133,7 @@
       .hlx-col-header,
       .hlx-col {
         flex: 1;
-        padding: 2px 5px;
+        padding: 2px 0;
       }
 
       .hlx-col {
@@ -161,11 +160,11 @@
       }
 
       .hlx-xs {
-        max-width: 35px;
+        width: 15px;
       }
       
       .hlx-s {
-        max-width: 90px;
+        width: 30px;
       }
 
       .hlx-m {
@@ -173,11 +172,12 @@
       }
 
       .hlx-l {
-        min-width: 20%;
+        width: 20%;
       }
 
       .hlx-xl {
-        min-width: 30%;
+        width: 30%;
+        max-width: 500px;
       }
 
       .hlx-before-100kb {
@@ -277,6 +277,16 @@
       .hlx-col-details pre {
         color: white;
       }
+
+      .hlx-col-url a {
+        display: inline;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hlx-col-preview {
+        max-width: 500px;
+      }
     `;
     return style;
   };
@@ -298,22 +308,22 @@
     defaultFilters = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
     sortedBy = 'start',
   ) => {
-    const grid = document.createElement('div');
+    const grid = document.createElement('table');
     grid.classList.add('hlx-grid');
 
-    const head = document.createElement('div');
+    const head = document.createElement('tr');
     head.classList.add('hlx-row');
     head.innerHTML = '';
-    if (cols.includes('index')) head.innerHTML += '<div class="hlx-col-header hlx-xs hlx-right">#</div>';
-    if (cols.includes('start')) head.innerHTML += `<div class="hlx-col-header hlx-s hlx-right">Start${sortedBy === 'start' ? '&darr;' : ''}</div>`;
-    if (cols.includes('end')) head.innerHTML += `<div class="hlx-col-header hlx-s hlx-right">End${sortedBy === 'end' ? '&darr;' : ''}</div>`;
-    if (cols.includes('url')) head.innerHTML += '<div class="hlx-col-header hlx-xl">URL</div>';
-    if (cols.includes('type')) head.innerHTML += '<div class="hlx-col-header hlx-m hlx-center">Type</div>';
-    if (cols.includes('size')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Size (KiB)</div>';
-    if (cols.includes('totalSize')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Total (KiB)</div>';
-    if (cols.includes('duration')) head.innerHTML += '<div class="hlx-col-header hlx-s hlx-right">Duration</div>';
-    if (cols.includes('preview')) head.innerHTML += '<div class="hlx-col-header hlx-m hlx-center">Info</div>';
-    if (cols.includes('details')) head.innerHTML += '<div class="hlx-col-header hlx-m">Details</div>';
+    if (cols.includes('index')) head.innerHTML += '<th class="hlx-col-header hlx-xs hlx-right">#</th>';
+    if (cols.includes('start')) head.innerHTML += `<th class="hlx-col-header hlx-s hlx-right">Start${sortedBy === 'start' ? '&darr;' : ''}</th>`;
+    if (cols.includes('end')) head.innerHTML += `<th class="hlx-col-header hlx-s hlx-right">End${sortedBy === 'end' ? '&darr;' : ''}</th>`;
+    if (cols.includes('url')) head.innerHTML += '<th class="hlx-col-header hlx-xl">URL</th>';
+    if (cols.includes('type')) head.innerHTML += '<th class="hlx-col-header hlx-m hlx-center">Type</th>';
+    if (cols.includes('size')) head.innerHTML += '<th class="hlx-col-header hlx-s hlx-right">Size KB</th>';
+    if (cols.includes('totalSize')) head.innerHTML += '<th class="hlx-col-header hlx-s hlx-right">Total KB</th>';
+    if (cols.includes('duration')) head.innerHTML += '<th class="hlx-col-header hlx-s hlx-right">Duration</th>';
+    if (cols.includes('preview')) head.innerHTML += '<th class="hlx-col-header hlx-m hlx-center">Info</th>';
+    if (cols.includes('details')) head.innerHTML += '<th class="hlx-col-header hlx-m">Details</th>';
 
     grid.appendChild(head);
 
@@ -366,19 +376,19 @@
       const preview = filteredPreview || details?.previewHTML || '';
       const previewTitle = filteredPreview || '';
 
-      const rowElement = document.createElement('div');
+      const rowElement = document.createElement('tr');
       rowElement.className = `hlx-row ${classes.join(' ')}`;
       rowElement.innerHTML = '';
-      if (cols.includes('index')) rowElement.innerHTML += `<div class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</div>`;
-      if (cols.includes('start')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</div>`;
-      if (cols.includes('end')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</div>`;
-      if (cols.includes('url')) rowElement.innerHTML += `<div class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</div>`;
-      if (cols.includes('type')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></div>`;
-      if (cols.includes('size')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</div>`;
-      if (cols.includes('totalSize')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</div>`;
-      if (cols.includes('duration')) rowElement.innerHTML += `<div class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</div>`;
-      if (cols.includes('preview')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-center hlx-col-preview" title="${previewTitle}">${preview}</div>`;
-      if (cols.includes('details')) rowElement.innerHTML += `<div class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></div>`;
+      if (cols.includes('index')) rowElement.innerHTML += `<td class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</td>`;
+      if (cols.includes('start')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</td>`;
+      if (cols.includes('end')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</td>`;
+      if (cols.includes('url')) rowElement.innerHTML += `<td class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</td>`;
+      if (cols.includes('type')) rowElement.innerHTML += `<td class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></td>`;
+      if (cols.includes('size')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</td>`;
+      if (cols.includes('totalSize')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</td>`;
+      if (cols.includes('duration')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-duration">${duration !== undefined ? formatTime(duration) : ''}</td>`;
+      if (cols.includes('preview')) rowElement.innerHTML += `<td class="hlx-col hlx-m hlx-center hlx-col-preview" title="${previewTitle}">${preview}</td>`;
+      if (cols.includes('details')) rowElement.innerHTML += `<td class="hlx-col hlx-m hlx-wrap hlx-col-details"><a href="#" data-details="${encodeURIComponent(JSON.stringify(details, null, 2))}">Details</a></td>`;
 
       grid.appendChild(rowElement);
       index += 1;
