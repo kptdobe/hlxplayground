@@ -132,7 +132,8 @@
 
       .hlx-col-header {
         flex: 1;
-        padding: 2px 0;
+        padding: 2px 5px;
+        white-space: nowrap;
       }
 
       .hlx-col {
