@@ -40,6 +40,8 @@
         --hlx-color-hover: #136ff6;
 
         --hlx-color-tbt: #eb7655;
+        --hlx-color-inp: #ab4555;
+        --hlx-color-laf: #ab4555;
         --hlx-color-lcp: #279766;
         --hlx-color-paint: #b73;
         --hlx-color-cls: rgba(231, 196, 104, 0.7);
@@ -192,6 +194,14 @@
         color: var(--hlx-color-tbt);
       }
 
+      .hlx-inp {
+        color: var(--hlx-color-inp);
+      }
+
+      .hlx-laf {
+        color: var(--hlx-color-laf);
+      }
+
       .hlx-badge,
       .hlx-penalty,
       .hlx-col-preview {
@@ -204,6 +214,24 @@
 
       .hlx-tbt .hlx-badge {
         background-color: var(--hlx-color-tbt);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .hlx-inp .hlx-badge {
+        background-color: var(--hlx-color-inp);
+        color: white;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .hlx-laf .hlx-badge {
+        background-color: var(--hlx-color-laf);
         color: white;
         padding: 4px 8px;
         text-align: center;
@@ -309,7 +337,7 @@
   const generateGrid = (
     data,
     cols = ['index', 'start', 'end', 'url', 'type', 'size', 'totalSize', 'duration', 'preview', 'details'],
-    defaultFilters = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'],
+    defaultFilters = ['navigation', 'resource', 'lcp', 'tbt', 'inp', 'long-animation-frame', 'cls', 'paint', 'mark'],
     sortedBy = 'start',
   ) => {
     const grid = document.createElement('table');
@@ -346,6 +374,9 @@
         if (u.hostname === host) {
           urlDislay = u.pathname;
         }
+      } else {
+        // use name instead of url
+        urlDislay = name;
       }
       const classes = [];
       if (type === 'LCP') {
@@ -354,6 +385,10 @@
         classes.push('hlx-cls');
       } else if (type === 'TBT') {
         classes.push('hlx-tbt');
+      } else if (type === 'INP') {
+        classes.push('hlx-inp');
+      } else if (type === 'long-animation-frame') {
+        classes.push('hlx-laf');
       } else if (type === 'paint') {
         classes.push('hlx-paint');
       } else if (type === 'mark') {
@@ -386,7 +421,7 @@
       if (cols.includes('index')) rowElement.innerHTML += `<td class="hlx-col hlx-xs hlx-right hlx-col-index">${index}</td>`;
       if (cols.includes('start')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-start">${formatTime(start)}</td>`;
       if (cols.includes('end')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-end">${formatTime(end)}</td>`;
-      if (cols.includes('url')) rowElement.innerHTML += `<td class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : ''}</td>`;
+      if (cols.includes('url')) rowElement.innerHTML += `<td class="hlx-col hlx-xl hlx-col-url">${url ? `<a href="${url}" target="_blank">${urlDislay}</a>` : `${urlDislay}`}</td>`;
       if (cols.includes('type')) rowElement.innerHTML += `<td class="hlx-col hlx-m hlx-center hlx-col-type"><span title="${name || ''}" class="hlx-badge">${type === 'mark' || type === 'paint' ? name : type}</span></td>`;
       if (cols.includes('size')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-size">${size !== undefined ? formatSize(size) : ''}</td>`;
       if (cols.includes('totalSize')) rowElement.innerHTML += `<td class="hlx-col hlx-s hlx-right hlx-col-totalSize">${totalSize !== undefined ? formatSize(totalSize) : ''}</td>`;
@@ -417,7 +452,7 @@
     return grid;
   };
 
-  const generateFilters = (list = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark'], defaults = ['navigation', 'resource', 'lcp', 'tbt', 'cls', 'paint', 'mark']) => {
+  const generateFilters = (list = ['navigation', 'resource', 'lcp', 'tbt', 'inp', 'long-animation-frame', 'cls', 'paint', 'mark'], defaults = ['navigation', 'resource', 'lcp', 'tbt', 'inp', 'long-animation-frame', 'cls', 'paint', 'mark']) => {
     const filters = document.createElement('div');
     filters.classList.add('hlx-filters');
     filters.innerHTML = '';
@@ -432,6 +467,12 @@
     }
     if (list.includes('tbt')) {
       filters.innerHTML += `<div class="hlx-tbt"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('tbt') ? 'checked' : ''}>TBT</span></div>`;
+    }
+    if (list.includes('inp')) {
+      filters.innerHTML += `<div class="hlx-inp"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('inp') ? 'checked' : ''}>INP</span></div>`;
+    }
+    if (list.includes('long-animation-frame')) {
+      filters.innerHTML += `<div class="hlx-laf"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('long-animation-frame') ? 'checked' : ''}>long-animation-frame</span></div>`;
     }
     if (list.includes('cls')) {
       filters.innerHTML += `<div class="hlx-cls"><span class="hlx-badge"><input type="checkbox" ${defaults.includes('cls') ? 'checked' : ''}>CLS</span></div>`;
@@ -615,7 +656,7 @@
       pols.disconnect();
       resolve(entries);
     });
-    pols.observe({ type, buffered: true });
+    pols.observe({ type, buffered: true, durationThreshold: 16 });
   });
 
   const reportNavigation = async (data) => {
@@ -798,6 +839,56 @@
     };
   };
 
+  const INPToData = (entry) => {
+    console.log('INP', entry);
+    const {
+      processingStart,
+      processingEnd,
+      startTime,
+      duration,
+      name,
+      target,
+    } = entry;
+    const inputDelay = Math.round(processingStart - startTime);
+    const processingTime = Math.round(processingEnd - processingStart);
+    const presentationDelay = Math.round(startTime + duration - processingEnd);
+
+    // const name = length === 1 ? 'TBT' : `TBT ${index + 1} / ${length}`;
+    return {
+      start: startTime,
+      name,
+      type: 'INP',
+      duration,
+      details: { 
+        entry,
+        preview: `${inputDelay}ms input delay, ${processingTime}ms processing time, ${presentationDelay}ms presentation delay`,
+        outerHTML: target?.outerHTML || '',
+      },
+    };
+  };
+
+  const LAFToData = (entry) => {
+    console.log('LAF', entry);
+    const {
+      startTime,
+      duration,
+      target,
+      scripts = [],
+    } = entry;
+   
+    // const name = length === 1 ? 'TBT' : `TBT ${index + 1} / ${length}`;
+    return {
+      start: startTime,
+      name: scripts.length > 0 ? scripts[scripts.length - 1].invoker : 'Could not find invoker script',
+      type: 'long-animation-frame',
+      duration,
+      details: { 
+        entry,
+        outerHTML: target?.outerHTML || '',
+      },
+    };
+  };
+
   const paintToData = (entry) => {
     const {
       name, startTime,
@@ -849,6 +940,8 @@
       reportMarker(data, 'largest-contentful-paint', LCPToData),
       reportMarker(data, 'layout-shift', CLSToData),
       reportMarker(data, 'longtask', TBTToData),
+      reportMarker(data, 'event', INPToData),
+      reportMarker(data, 'long-animation-frame', LAFToData),
       reportMarker(data, 'paint', paintToData),
       reportMarker(data, 'mark', markToData),
     ]);
