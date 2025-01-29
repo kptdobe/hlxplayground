@@ -1008,7 +1008,7 @@
     data.sort((a, b) => a.start - b.start);
     window.PERFORMANCE_REPORT_DATA = {
       url: window.location.href,
-      type: window.matchMedia("(max-width: 800px)") ? 'mobile' : 'desktop',
+      type: window.matchMedia("(max-width: 800px)").matches ? 'mobile' : 'desktop',
       data: data.map(({ start, end, name, url, type, duration, issues, entryType, size }) => {
         const ret = {
           start, end, entryType
