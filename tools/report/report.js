@@ -978,6 +978,11 @@
     const data = await getPerformanceReport();
     // console.table(data);
     display(data);
+    window.PERFORMANCE_REPORT_DATA = {
+      url: window.location.href,
+      type: window.matchMedia("(max-width: 800px)") ? 'mobile' : 'desktop',
+      data
+    };
   };
 
   main();
