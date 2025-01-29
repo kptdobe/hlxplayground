@@ -681,6 +681,7 @@
 
       const ok = [];
       const penalty = [];
+      const issues = [];
       const ttfb = responseStart - (activationStart || 0);
       if (ttfb > 800) {
         penalty.push(`High TTFB: ${formatTimeMS(ttfb)}`);
@@ -688,10 +689,15 @@
         ok.push(`TTFB: ${formatTimeMS(ttfb)}`);
       }
 
+      if (ttfb) {
+        issues.push(`TTFB: ${formatTimeMS(ttfb)}`);
+      }
+
       if (redirectCount > 0) {
         const redirectTime = redirectEnd - redirectStart;
         const s = redirectCount > 1 ? 's' : '';
         penalty.push(`${redirectCount} redirect${s} - cost: ${formatTimeMS(redirectTime)}`);
+        issues.push(`${redirectCount} redirect${s} - cost: ${formatTimeMS(redirectTime)}`);
       }
 
       if (ok.length > 0) {
@@ -710,6 +716,7 @@
         entryType: 'navigation',
         duration,
         size: transferSize,
+        issues: issues.length > 0 ? issues.join(', ') : null,
         details: {
           entry,
         },
@@ -744,11 +751,13 @@
 
       const tcpHandshake = connectEnd - connectStart;
       const dnsLookup = domainLookupEnd - domainLookupStart;
+      let issues = undefined;
       if (tcpHandshake > 0 || dnsLookup > 0 || renderBlockingStatus !== 'non-blocking') {
         const title = [];
         if (tcpHandshake > 0) title.push(`TCP handshake: ${formatTimeMS(tcpHandshake)}`);
         if (dnsLookup > 0) title.push(`DNS lookup: ${formatTimeMS(dnsLookup)}`);
         if (renderBlockingStatus !== 'non-blocking') title.push(`Render blocking: ${renderBlockingStatus}`);
+        issues = title.join(', ');
         previewHTML = `<span class="hlx-penalty">⚠️ ${title.join(' ⚠️ ')}</span>`;
       }
 
@@ -760,6 +769,7 @@
         entryType: 'resource',
         duration,
         size: transferSize,
+        issues,
         details: {
           entry,
         },
@@ -835,6 +845,7 @@
       name,
       type: 'TBT',
       duration,
+      issues: `TBT: ${duration}ms`,
       details: { entry },
     };
   };
@@ -875,16 +886,31 @@
       target,
       scripts = [],
     } = entry;
-   
-    // const name = length === 1 ? 'TBT' : `TBT ${index + 1} / ${length}`;
+
+    let url = '';
+    let name = 'Could not find invoker script';
+    const invoker = scripts.length ? scripts[scripts.length - 1].invoker : null;
+    if (invoker) {
+      try {
+        const u = new URL(invoker);
+        url = invoker;
+        name = '';
+      } catch (e) {
+        name = scripts[scripts.length - 1].invoker;
+      }
+    }
+    
     return {
       start: startTime,
-      name: scripts.length > 0 ? scripts[scripts.length - 1].invoker : 'Could not find invoker script',
+      name,
+      url,
       type: 'long-animation-frame',
       duration,
+      issues: `long-animation-frame: ${duration}ms`,
       details: { 
         entry,
         outerHTML: target?.outerHTML || '',
+        previewHTML: `⚠️ long-animation-frame: ${duration}ms`
       },
     };
   };
@@ -948,7 +974,7 @@
 
     return data.map((entry) => {
       const {
-        start, end, name, url, type, duration, details, entryType, size,
+        start, end, name, url, type, duration, details, entryType, size, issues,
       } = entry;
       const ret = {};
 
@@ -960,6 +986,7 @@
       if (entryType) ret.entryType = entryType; else ret.entryType = type.toLowerCase();
       if (duration !== undefined) ret.duration = Math.round(duration);
       if (size !== undefined) ret.size = size;
+      if (issues !== undefined) ret.issues = issues;
 
       ret.details = details;
       return ret;
@@ -978,10 +1005,22 @@
     const data = await getPerformanceReport();
     // console.table(data);
     display(data);
+    data.sort((a, b) => a.start - b.start);
     window.PERFORMANCE_REPORT_DATA = {
       url: window.location.href,
       type: window.matchMedia("(max-width: 800px)") ? 'mobile' : 'desktop',
-      data
+      data: data.map(({ start, end, name, url, type, duration, issues, entryType, size }) => {
+        const ret = {
+          start, end, entryType
+        };
+        if (name) ret.name = name;
+        if (issues) ret.issues = issues;
+        if (url) ret.url = url;
+        if (type) ret.type = type;
+        if(duration) ret.duration = duration;
+        if(size) ret.size = size;
+        return ret;
+      }),
     };
   };
 
