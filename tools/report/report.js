@@ -733,7 +733,6 @@
   const reportResources = async (data) => {
     const entries = await getEntries('resource');
     entries.forEach((entry) => {
-      console.log('Resource', entry);
       const {
         name,
         initiatorType,
@@ -747,6 +746,8 @@
         renderBlockingStatus,
         responseEnd,
       } = entry;
+
+      console.log('Resource', name, entry);
 
       let previewHTML = null;
 
